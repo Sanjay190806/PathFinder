@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict
 
 from backend.app.database import get_db
 from backend.app.api.v1.auth import get_current_user
@@ -9,7 +9,7 @@ from backend.app.models.learning_path import LearningPath, LearningPathVersion
 from backend.app.models.progress import Progress
 from backend.app.models.feedback import Feedback
 from backend.app.models.skill import Skill
-from backend.app.schemas.analytics import AnalyticsSummaryOut, SkillMasteryPoint
+from backend.app.schemas.analytics import AnalyticsSummaryOut, SkillMasteryPoint, PhaseProgressOut
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -23,9 +23,10 @@ def get_analytics(current_user: User = Depends(get_current_user), db: Session = 
     total_resources = 0
     completed_resources = 0
     in_progress = 0
-    active_phase = "Phase 1: Strengthen Foundations"
+    active_phase = "Phase 1: Foundations"
     total_hours = 0.0
     hours_done = 0.0
+    phase_map: Dict[int, dict] = {}
 
     if path:
         active_version = db.query(LearningPathVersion).filter(
@@ -39,11 +40,52 @@ def get_analytics(current_user: User = Depends(get_current_user), db: Session = 
                 if it.is_completed:
                     completed_resources += 1
                     hours_done += it.resource.estimated_hours
-            if active_version.items:
-                active_phase = f"Phase {active_version.items[0].phase_number}: {active_version.items[0].phase_name}"
+
+                # Track per-phase metrics
+                p_num = it.phase_number
+                if p_num not in phase_map:
+                    phase_map[p_num] = {
+                        "phase_number": p_num,
+                        "phase_name": it.phase_name,
+                        "total_modules": 0,
+                        "completed_modules": 0,
+                        "total_hours": 0.0,
+                        "completed_hours": 0.0
+                    }
+                p_data = phase_map[p_num]
+                p_data["total_modules"] += 1
+                p_data["total_hours"] += it.resource.estimated_hours
+                if it.is_completed:
+                    p_data["completed_modules"] += 1
+                    p_data["completed_hours"] += it.resource.estimated_hours
+
+            # Determine true active phase (first incomplete phase, or last phase)
+            incomplete_item = next((it for it in active_version.items if not it.is_completed), None)
+            if incomplete_item:
+                active_phase = f"Phase {incomplete_item.phase_number}: {incomplete_item.phase_name}"
+            elif active_version.items:
+                active_phase = f"Phase {active_version.items[-1].phase_number}: {active_version.items[-1].phase_name}"
+
+    phase_progress_list = []
+    for p_num in sorted(phase_map.keys()):
+        d = phase_map[p_num]
+        pct = (d["completed_modules"] / d["total_modules"] * 100) if d["total_modules"] > 0 else 0.0
+        phase_progress_list.append(PhaseProgressOut(
+            phase_number=d["phase_number"],
+            phase_name=d["phase_name"],
+            total_modules=d["total_modules"],
+            completed_modules=d["completed_modules"],
+            completion_percentage=round(pct, 1),
+            total_hours=round(d["total_hours"], 1),
+            completed_hours=round(d["completed_hours"], 1)
+        ))
 
     progress_records = db.query(Progress).filter(Progress.profile_id == profile.id).all()
+    completed_from_progress = len([p for p in progress_records if p.status == "completed"])
     in_progress = len([p for p in progress_records if p.status == "in_progress"])
+    completed_resources = max(completed_resources, completed_from_progress)
+    hours_from_progress = sum((p.time_spent_minutes or 0) / 60.0 for p in progress_records if p.status == "completed")
+    hours_done = max(hours_done, hours_from_progress)
 
     conf_map = dict(profile.skill_confidence_map or {})
     all_skills = db.query(Skill).all()
@@ -83,5 +125,6 @@ def get_analytics(current_user: User = Depends(get_current_user), db: Session = 
         strengths=strengths[:4] if strengths else [],
         weaknesses=weaknesses[:4] if weaknesses else [],
         acceptance_rate=round(acceptance_rate, 1),
-        weekly_velocity=profile.velocity_score or 1.0
+        weekly_velocity=profile.velocity_score or 1.0,
+        phase_progress=phase_progress_list
     )

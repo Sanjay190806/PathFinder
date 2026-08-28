@@ -2,11 +2,13 @@ import re
 from typing import Tuple, List
 
 INJECTION_PATTERNS = [
-    r"ignore (all )?previous instructions",
-    r"disregard (all )?prior instructions",
-    r"reveal (the )?system prompt",
-    r"print (the )?system prompt",
-    r"show (me )?(the )?system prompt",
+    r"ignore (all )?(the )?(previous )?(rules|instructions)",
+    r"disregard (all )?(the )?(prior|previous )?(rules|instructions)",
+    r"reveal (the |all )?(system|hidden) (prompt|instructions)",
+    r"print (the |all )?(system|hidden) (prompt|instructions)",
+    r"show (me )?(the |all )?(system|hidden) (prompt|instructions)",
+    r"tell me (your |the )?(hidden |system )?(prompt|instructions)",
+    r"forget (my |your |all )?(roadmap|instructions)",
     r"reveal (the )?api key",
     r"show (me )?(the )?api key",
     r"what is (the )?api key",

@@ -64,6 +64,7 @@ def submit_assessment(
             correct_count += 1
 
         skill_slug = q.skill.slug if q.skill else "general"
+        old_conf = float((profile.skill_confidence_map or {}).get(skill_slug, 0.0))
         event_id = str(uuid.uuid4())
 
         # Process quiz adaptation per skill question
@@ -83,9 +84,13 @@ def submit_assessment(
             confidence_delta=0.05 if is_correct else -0.05
         ))
 
+        new_conf = float((profile.skill_confidence_map or {}).get(skill_slug, old_conf))
+
         updates.append({
             "skill": q.skill.name if q.skill else skill_slug,
-            "is_correct": is_correct
+            "is_correct": is_correct,
+            "old_confidence": old_conf,
+            "new_confidence": new_conf
         })
 
     db.commit()

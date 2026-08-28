@@ -1,42 +1,72 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Navbar } from '@/components/Navbar';
-import { WhyRecommendedModal } from '@/components/WhyRecommendedModal';
-import { ResourceCard } from '@/components/ResourceCard';
-import { AIAssistantDrawer } from '@/components/AIAssistantDrawer';
-import { api, getAuthToken } from '@/lib/api';
-import { LearningPath, LearningPathItem, Profile } from '@/lib/types';
-import { BookOpen, Sparkles, CheckCircle2, Clock, ChevronDown, ChevronUp, RefreshCw, Layers } from 'lucide-react';
-import { formatTimeHours } from '@/lib/utils';
+import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Route, Layers, Network, ArrowRight, RefreshCw, Sparkles, BookOpen } from "lucide-react";
+import { api, getAuthToken } from "@/lib/api";
+import { Navbar } from "@/components/Navbar";
+import { WhyRecommendedModal } from "@/components/WhyRecommendedModal";
+import { AIAssistantDrawer } from "@/components/AIAssistantDrawer";
+import { LearningPath, LearningPathItem, Profile, SkillGraph, SkillGraphNode } from "@/lib/types";
+import { Tabs, Button, Card, EmptyState, Alert } from "@/components/ui";
+
+import { RoadmapHeader } from "@/components/roadmap/RoadmapHeader";
+import { RoadmapOverview } from "@/components/roadmap/RoadmapOverview";
+import { PhaseNavigation } from "@/components/roadmap/PhaseNavigation";
+import { RoadmapTimeline } from "@/components/roadmap/RoadmapTimeline";
+import { SkillGraphView } from "@/components/roadmap/SkillGraphView";
+import { SkillInspector } from "@/components/roadmap/SkillInspector";
+import { RoadmapSkeleton } from "@/components/roadmap/RoadmapSkeleton";
 
 export default function RoadmapPage() {
+  const [activeTab, setActiveTab] = useState<string>("curriculum"); // "curriculum" | "graph"
   const [profile, setProfile] = useState<Profile | null>(null);
   const [learningPath, setLearningPath] = useState<LearningPath | null>(null);
+  const [skillGraph, setSkillGraph] = useState<SkillGraph | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Phase Filtering
+  const [activePhase, setActivePhase] = useState<number | "all">("all");
+
+  // Modals & Inspector State
   const [selectedWhyItem, setSelectedWhyItem] = useState<LearningPathItem | null>(null);
   const [isWhyModalOpen, setIsWhyModalOpen] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState<SkillGraphNode | null>(null);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
-  const [expandedPhases, setExpandedPhases] = useState<Record<number, boolean>>({
-    1: true, 2: true, 3: true, 4: true, 5: true
-  });
-  const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const [profData, pathData] = await Promise.all([
-        api.getProfile(),
-        api.getLearningPath()
+      const token = getAuthToken();
+      if (!token) {
+        const demoRes = await api.demoLogin();
+        localStorage.setItem("pathfinder_token", demoRes.access_token);
+      }
+
+      const [profData, pathData, graphData] = await Promise.all([
+        api.getProfile().catch(() => null),
+        api.getLearningPath().catch(() => null),
+        api.getSkillGraph().catch(() => null)
       ]);
+
       setProfile(profData);
       setLearningPath(pathData);
-    } catch (err) {
-      console.error(err);
+      setSkillGraph(graphData);
+    } catch (err: any) {
+      console.error("Error loading roadmap data", err);
+      setError("Unable to load curriculum data. Please check the backend connection.");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const handleRegenerate = async () => {
     setIsRegenerating(true);
@@ -44,132 +74,170 @@ export default function RoadmapPage() {
       const updatedPath = await api.regenerateRoadmap();
       setLearningPath(updatedPath);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to regenerate roadmap", err);
     } finally {
       setIsRegenerating(false);
     }
   };
 
-  const togglePhase = (num: number) => {
-    setExpandedPhases(prev => ({ ...prev, [num]: !prev[num] }));
+  const handleWhyClick = (item: LearningPathItem) => {
+    setSelectedWhyItem(item);
+    setIsWhyModalOpen(true);
+  };
+
+  const handleSelectSkillNode = (node: SkillGraphNode) => {
+    setSelectedSkill(node);
+    setIsInspectorOpen(true);
+  };
+
+  const handleSelectSkillSlug = (slug: string) => {
+    const found = skillGraph?.nodes.find((n) => n.slug === slug);
+    if (found) {
+      setSelectedSkill(found);
+    }
   };
 
   const activeVersion = learningPath?.current_version;
   const items = activeVersion?.items || [];
 
-  const phases = [
-    { num: 1, name: "Strengthen Foundations", desc: "Core prerequisites, programming syntax & fundamental math" },
-    { num: 2, name: "Core Competencies", desc: "Core algorithms, data analysis & foundational domain tooling" },
-    { num: 3, name: "Deep Specialization", desc: "Advanced architectures, deep models & specialized frameworks" },
-    { num: 4, name: "Engineering & Deployment", desc: "Production APIs, Docker, pipelines & testing" },
-    { num: 5, name: "Capstone & Portfolio", desc: "Real-world end-to-end projects & interview preparation" }
-  ];
+  // Extract dynamic phase summary for PhaseNavigation
+  const phaseMap = new Map<number, { name: string; count: number; completedCount: number }>();
+  for (const it of items) {
+    if (!phaseMap.has(it.phase_number)) {
+      phaseMap.set(it.phase_number, { name: it.phase_name, count: 0, completedCount: 0 });
+    }
+    const p = phaseMap.get(it.phase_number)!;
+    p.count += 1;
+    if (it.is_completed) p.completedCount += 1;
+  }
+
+  const dynamicPhases = Array.from(phaseMap.entries())
+    .map(([number, data]) => ({ number, ...data }))
+    .sort((a, b) => a.number - b.number);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary-500 selection:text-white">
+      {/* Global Navigation */}
       <Navbar
         user={profile}
         onOpenAssistant={() => setIsAssistantOpen(true)}
       />
 
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto w-full space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-border pb-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-accent-cyan">Curriculum Roadmap</span>
-              <span className="rounded-md bg-primary-950 px-2 py-0.5 text-[10px] font-bold text-primary-300 border border-primary-800">
-                Algorithm: {learningPath?.algorithm_version || 'v1.2.0'}
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-              {learningPath?.title || 'Personalized Learning Roadmap'}
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-400 mt-1">
-              Organized into 5 progressive phases ensuring 0% prerequisite violations.
-            </p>
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto w-full space-y-8">
+        {isLoading ? (
+          <RoadmapSkeleton />
+        ) : error ? (
+          <div className="py-12 max-w-lg mx-auto text-center space-y-4">
+            <Alert variant="danger" message={error} />
+            <Button onClick={loadData} variant="primary" leftIcon={<RefreshCw className="h-4 w-4" />}>
+              Retry Connection
+            </Button>
           </div>
+        ) : !items || items.length === 0 ? (
+          <div className="py-12 max-w-lg mx-auto">
+            <EmptyState
+              icon={<Route className="h-8 w-8 text-primary-400" />}
+              title="No roadmap synthesized yet"
+              description="Complete the onboarding calibration to generate your structured learning roadmap."
+              action={
+                <Link href="/onboarding">
+                  <Button size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                    Start Career Onboarding
+                  </Button>
+                </Link>
+              }
+            />
+          </div>
+        ) : (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {/* Header */}
+            <RoadmapHeader
+              profile={profile}
+              activeVersion={activeVersion}
+              isRegenerating={isRegenerating}
+              onRegenerate={handleRegenerate}
+              onOpenAssistant={() => setIsAssistantOpen(true)}
+            />
 
-          <button
-            onClick={handleRegenerate}
-            disabled={isRegenerating}
-            className="flex items-center gap-2 rounded-xl border border-surface-border bg-surface-raised px-4 py-2.5 text-xs font-semibold text-gray-200 hover:bg-surface-border hover:text-white transition-all disabled:opacity-40"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
-            {isRegenerating ? 'Re-scoring...' : 'Re-calculate Path'}
-          </button>
-        </div>
+            {/* Overview KPIs */}
+            <RoadmapOverview items={items} phaseCount={dynamicPhases.length} />
 
-        <div className="space-y-6">
-          {phases.map((p) => {
-            const phaseItems = items.filter(it => it.phase_number === p.num);
-            const isExpanded = expandedPhases[p.num] ?? true;
-            const completedCount = phaseItems.filter(it => it.is_completed).length;
-            const totalHours = phaseItems.reduce((acc, it) => acc + it.estimated_hours, 0);
+            {/* Main Tab Controller: Sequenced Curriculum vs Skill Dependency Graph */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-border pb-4">
+              <Tabs
+                items={[
+                  { id: "curriculum", label: "Sequenced Curriculum", icon: <Layers className="h-3.5 w-3.5" />, count: items.length },
+                  { id: "graph", label: "Skill Dependency Graph", icon: <Network className="h-3.5 w-3.5" />, count: skillGraph?.nodes.length || 0 }
+                ]}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+              />
 
-            return (
-              <div
-                key={p.num}
-                className="rounded-3xl border border-surface-border bg-surface/90 overflow-hidden shadow-xl"
-              >
-                <div
-                  onClick={() => togglePhase(p.num)}
-                  className="flex items-center justify-between p-5 sm:p-6 bg-surface-raised/40 cursor-pointer hover:bg-surface-raised/70 transition-colors border-b border-surface-border"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-600/20 text-primary-300 border border-primary-500/30 font-extrabold font-mono text-sm">
-                      {p.num}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Phase {p.num}</span>
-                        <span className="text-xs text-gray-500">?</span>
-                        <span className="text-xs text-primary-400 font-semibold">{formatTimeHours(totalHours)}</span>
-                      </div>
-                      <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">{p.name}</h3>
-                      <p className="text-xs text-gray-400 mt-0.5 hidden sm:block">{p.desc}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-gray-300 bg-surface px-3 py-1 rounded-full border border-surface-border font-mono">
-                      {completedCount}/{phaseItems.length} Done
-                    </span>
-                    {isExpanded ? <ChevronUp className="h-5 w-5 text-gray-400" /> : <ChevronDown className="h-5 w-5 text-gray-400" />}
-                  </div>
+              {activeTab === "curriculum" && (
+                <div className="text-xs text-slate-400">
+                  Showing {activePhase === "all" ? "all phases" : `Phase ${activePhase}`}
                 </div>
+              )}
+            </div>
 
-                {isExpanded && (
-                  <div className="p-4 sm:p-6 space-y-3 bg-surface/40">
-                    {phaseItems.length > 0 ? (
-                      phaseItems.map((item) => (
-                        <ResourceCard
-                          key={item.id}
-                          item={item}
-                          onWhyClick={(it) => {
-                            setSelectedWhyItem(it);
-                            setIsWhyModalOpen(true);
-                          }}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-center py-6 text-xs text-gray-500">
-                        No resources currently allocated to this phase.
-                      </div>
-                    )}
-                  </div>
+            {/* TAB 1: Sequenced Curriculum */}
+            {activeTab === "curriculum" && (
+              <div className="space-y-6">
+                <PhaseNavigation
+                  phases={dynamicPhases}
+                  activePhase={activePhase}
+                  onSelectPhase={setActivePhase}
+                />
+
+                <RoadmapTimeline
+                  items={items}
+                  filterPhase={activePhase}
+                  onWhyClick={handleWhyClick}
+                />
+              </div>
+            )}
+
+            {/* TAB 2: Interactive Skill Dependency Graph */}
+            {activeTab === "graph" && (
+              <div className="space-y-6">
+                {skillGraph && skillGraph.nodes.length > 0 ? (
+                  <SkillGraphView
+                    nodes={skillGraph.nodes}
+                    edges={skillGraph.edges}
+                    selectedSkillSlug={selectedSkill?.slug || null}
+                    onSelectSkill={handleSelectSkillNode}
+                  />
+                ) : (
+                  <EmptyState
+                    icon={<Network className="h-6 w-6 text-slate-400" />}
+                    title="Skill map unavailable"
+                    description="No skill graph records found for this domain."
+                  />
                 )}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        )}
       </main>
 
+      {/* Skill Inspector Drawer */}
+      <SkillInspector
+        skill={selectedSkill}
+        allNodes={skillGraph?.nodes || []}
+        edges={skillGraph?.edges || []}
+        isOpen={isInspectorOpen}
+        onClose={() => setIsInspectorOpen(false)}
+        onSelectSkill={handleSelectSkillSlug}
+      />
+
+      {/* Why Recommended Modal */}
       <WhyRecommendedModal
         item={selectedWhyItem}
         isOpen={isWhyModalOpen}
         onClose={() => setIsWhyModalOpen(false)}
       />
 
+      {/* AI Assistant Drawer */}
       <AIAssistantDrawer
         isOpen={isAssistantOpen}
         onClose={() => setIsAssistantOpen(false)}

@@ -8,6 +8,7 @@ from backend.app.api.v1.auth import get_current_user
 from backend.app.models.user import User
 from backend.app.models.progress import Progress
 from backend.app.models.resource import LearningResource
+from backend.app.models.learning_path import LearningPath, LearningPathVersion, LearningPathItem
 from backend.app.schemas.progress import ProgressUpdate, ProgressOut
 from backend.app.adaptive.adaptive_engine import AdaptiveEngine
 
@@ -42,6 +43,19 @@ def update_progress(
             "completion_percentage": payload.completion_percentage
         }
     )
+
+    # Synchronize LearningPathItem completion state in active version
+    path = db.query(LearningPath).filter(LearningPath.profile_id == profile.id, LearningPath.is_active == True).first()
+    if path:
+        active_ver = db.query(LearningPathVersion).filter(
+            LearningPathVersion.learning_path_id == path.id,
+            LearningPathVersion.is_active == True
+        ).first()
+        if active_ver:
+            for it in active_ver.items:
+                if it.resource_id == res.id:
+                    it.is_completed = (payload.status == "completed")
+            db.commit()
 
     prog = db.query(Progress).filter(
         Progress.profile_id == profile.id,

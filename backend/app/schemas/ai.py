@@ -31,3 +31,15 @@ class ChatResponse(BaseModel):
     is_fallback: bool = False
     correlation_id: Optional[str] = None
     latency_ms: Optional[float] = None
+
+
+class CoachContextOut(BaseModel):
+    target_role: str
+    active_phase: str
+    weekly_hours: int
+    skills_count: int
+    skill_gaps: List[str]
+    strengths: List[str]
+    completed_count: int
+    next_step_title: Optional[str] = None
+    next_step_id: Optional[str] = None

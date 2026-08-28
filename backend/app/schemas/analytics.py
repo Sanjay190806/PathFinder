@@ -7,6 +7,15 @@ class SkillMasteryPoint(BaseModel):
     confidence: float
     target_confidence: float
 
+class PhaseProgressOut(BaseModel):
+    phase_number: int
+    phase_name: str
+    total_modules: int
+    completed_modules: int
+    completion_percentage: float
+    total_hours: float
+    completed_hours: float
+
 class AnalyticsSummaryOut(BaseModel):
     total_resources: int
     completed_resources: int
@@ -21,3 +30,4 @@ class AnalyticsSummaryOut(BaseModel):
     weaknesses: List[str]
     acceptance_rate: float
     weekly_velocity: float
+    phase_progress: List[PhaseProgressOut] = []

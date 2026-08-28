@@ -5,10 +5,62 @@ import uuid
 from backend.app.database import get_db
 from backend.app.api.v1.auth import get_current_user
 from backend.app.models.user import User
-from backend.app.schemas.ai import ChatRequest, ChatResponse, ActionSuggestion, GroundedSourceOut
+from backend.app.models.learning_path import LearningPath, LearningPathVersion
+from backend.app.models.progress import Progress
+from backend.app.schemas.ai import ChatRequest, ChatResponse, ActionSuggestion, GroundedSourceOut, CoachContextOut
 from backend.app.ai.coach import AICoach
 
 router = APIRouter(prefix="/ai", tags=["AI Coach & Grounded Assistant"])
+
+@router.get("/context", response_model=CoachContextOut)
+def get_coach_context(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    primary_goal = next((g for g in profile.goals if g.is_primary), profile.goals[0] if profile.goals else None)
+    target_role = primary_goal.target_role if primary_goal else "Career Path"
+
+    conf_map = dict(profile.skill_confidence_map or {})
+    strengths = [s for s, c in conf_map.items() if c >= 0.65]
+    skill_gaps = [s for s, c in conf_map.items() if c < 0.40]
+
+    active_phase = "Phase 1: Foundations"
+    next_step_title = None
+    next_step_id = None
+
+    path = db.query(LearningPath).filter(LearningPath.profile_id == profile.id, LearningPath.is_active == True).first()
+    if path:
+        active_version = db.query(LearningPathVersion).filter(
+            LearningPathVersion.learning_path_id == path.id,
+            LearningPathVersion.is_active == True
+        ).first()
+        if active_version and active_version.items:
+            sorted_items = sorted(active_version.items, key=lambda it: it.sequence_order)
+            incomplete = next((it for it in sorted_items if not it.is_completed), None)
+            if incomplete:
+                active_phase = f"Phase {incomplete.phase_number}: {incomplete.phase_name}"
+                next_step_title = incomplete.resource.title if incomplete.resource else None
+                next_step_id = incomplete.resource_id
+            elif sorted_items:
+                active_phase = f"Phase {sorted_items[-1].phase_number}: {sorted_items[-1].phase_name}"
+
+    completed_count = db.query(Progress).filter(Progress.profile_id == profile.id, Progress.status == "completed").count()
+
+    return CoachContextOut(
+        target_role=target_role,
+        active_phase=active_phase,
+        weekly_hours=profile.weekly_hours or 10,
+        skills_count=len(conf_map),
+        skill_gaps=skill_gaps[:4],
+        strengths=strengths[:4],
+        completed_count=completed_count,
+        next_step_title=next_step_title,
+        next_step_id=next_step_id
+    )
 
 @router.post("/chat", response_model=ChatResponse)
 def assistant_chat(

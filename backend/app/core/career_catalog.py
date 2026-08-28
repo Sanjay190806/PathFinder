@@ -51,6 +51,14 @@ CAREER_ROLES_CATALOG: Dict[str, CareerRoleDefinition] = {
         domain_category="Cybersecurity",
         target_skills=["networking", "linux", "web-security", "cryptography", "pentesting"]
     ),
+    "vlsi-hardware-engineer": CareerRoleDefinition(
+        role="VLSI Hardware Engineer",
+        slug="vlsi-hardware-engineer",
+        title="Become a VLSI Hardware Engineer",
+        description="Master digital logic design, Verilog/VHDL RTL modeling, CMOS circuit design, ASIC synthesis, and FPGA prototyping.",
+        domain_category="Hardware Engineering",
+        target_skills=["linear-algebra", "python", "dsa"]
+    ),
     "software-engineer": CareerRoleDefinition(
         role="Software Engineer",
         slug="software-engineer",
