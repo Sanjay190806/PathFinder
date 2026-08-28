@@ -32,3 +32,15 @@ class LearnerProfile(Base):
     assessment_responses = relationship("AssessmentResponse", back_populates="profile", cascade="all, delete-orphan")
     recommendations = relationship("Recommendation", back_populates="profile", cascade="all, delete-orphan")
     behavior_events = relationship("BehaviorEvent", back_populates="profile", cascade="all, delete-orphan")
+    
+    # Phase 8 Relationships
+    practical_competencies = relationship("PracticalCompetency", back_populates="profile", cascade="all, delete-orphan")
+    practical_evidence_records = relationship("PracticalEvidenceRecord", back_populates="profile", cascade="all, delete-orphan")
+    projects = relationship("LearnerProject", back_populates="profile", cascade="all, delete-orphan")
+    scenario_attempts = relationship("ScenarioAttempt", back_populates="profile", cascade="all, delete-orphan")
+    practical_assessment_attempts = relationship("PracticalAssessmentAttempt", back_populates="profile", cascade="all, delete-orphan")
+    portfolio = relationship("LearnerPortfolio", back_populates="profile", uselist=False, cascade="all, delete-orphan")
+    opportunity_matches = relationship("LearnerOpportunityMatch", back_populates="profile", cascade="all, delete-orphan")
+    applications = relationship("LearnerApplication", back_populates="profile", cascade="all, delete-orphan")
+    resume_audits = relationship("ResumeAudit", back_populates="profile", cascade="all, delete-orphan")
+    mock_interviews = relationship("MockInterviewSession", back_populates="profile", cascade="all, delete-orphan")

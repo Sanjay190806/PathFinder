@@ -20,7 +20,16 @@ from backend.app.api.v1 import (
     demo,
     recommendations,
     interactions,
-    intelligence
+    intelligence,
+    practical,
+    projects,
+    scenarios,
+    practical_assessment,
+    portfolio,
+    employability,
+    opportunities,
+    applications,
+    career_prep
 )
 
 @asynccontextmanager
@@ -65,6 +74,15 @@ app.include_router(ai_chat.router, prefix=settings.API_V1_STR)
 app.include_router(interactions.router, prefix=settings.API_V1_STR)
 app.include_router(demo.router, prefix=settings.API_V1_STR)
 app.include_router(intelligence.router, prefix=settings.API_V1_STR)
+app.include_router(practical.router, prefix=settings.API_V1_STR)
+app.include_router(projects.router, prefix=settings.API_V1_STR)
+app.include_router(scenarios.router, prefix=settings.API_V1_STR)
+app.include_router(practical_assessment.router, prefix=settings.API_V1_STR)
+app.include_router(portfolio.router, prefix=settings.API_V1_STR)
+app.include_router(employability.router, prefix=settings.API_V1_STR)
+app.include_router(opportunities.router, prefix=settings.API_V1_STR)
+app.include_router(applications.router, prefix=settings.API_V1_STR)
+app.include_router(career_prep.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

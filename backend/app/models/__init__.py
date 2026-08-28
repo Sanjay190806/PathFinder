@@ -15,6 +15,13 @@ from backend.app.models.progress import Progress
 from backend.app.models.feedback import Feedback
 from backend.app.models.interaction import Interaction
 from backend.app.models.behavior_event import BehaviorEvent
+from backend.app.models.practical_competency import PracticalCompetency, PracticalEvidenceRecord
+from backend.app.models.project import ProjectTemplate, LearnerProject, LearnerProjectMilestone
+from backend.app.models.scenario import EngineeringScenario, ScenarioAttempt
+from backend.app.models.practical_assessment import PracticalAssessment, PracticalAssessmentAttempt
+from backend.app.models.portfolio import LearnerPortfolio, PortfolioArtifact
+from backend.app.models.opportunity import Opportunity, LearnerOpportunityMatch
+from backend.app.models.career_action import LearnerApplication, ResumeAudit, MockInterviewSession
 from backend.app.models.assessment import (
     Assessment,
     AssessmentQuestion,
@@ -44,4 +51,20 @@ __all__ = [
     "AssessmentQuestion",
     "AssessmentResponse",
     "BehaviorEvent",
+    "PracticalCompetency",
+    "PracticalEvidenceRecord",
+    "ProjectTemplate",
+    "LearnerProject",
+    "LearnerProjectMilestone",
+    "EngineeringScenario",
+    "ScenarioAttempt",
+    "PracticalAssessment",
+    "PracticalAssessmentAttempt",
+    "LearnerPortfolio",
+    "PortfolioArtifact",
+    "Opportunity",
+    "LearnerOpportunityMatch",
+    "LearnerApplication",
+    "ResumeAudit",
+    "MockInterviewSession",
 ]
