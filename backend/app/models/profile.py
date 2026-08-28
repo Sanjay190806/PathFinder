@@ -31,3 +31,4 @@ class LearnerProfile(Base):
     interactions = relationship("Interaction", back_populates="profile", cascade="all, delete-orphan")
     assessment_responses = relationship("AssessmentResponse", back_populates="profile", cascade="all, delete-orphan")
     recommendations = relationship("Recommendation", back_populates="profile", cascade="all, delete-orphan")
+    behavior_events = relationship("BehaviorEvent", back_populates="profile", cascade="all, delete-orphan")

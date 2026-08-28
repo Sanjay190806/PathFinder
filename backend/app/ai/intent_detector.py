@@ -9,35 +9,47 @@ class IntentDetector:
         """
         q = (query or "").lower().strip()
 
-        # 1. Prerequisite & Blocking
+        # 1. Readiness
+        if any(phrase in q for phrase in ["how ready", "readiness", "am i ready", "job ready", "career ready", "qualify", "qualification"]):
+            return "READINESS_QUERY"
+
+        # 2. Skill Gaps
+        if any(phrase in q for phrase in ["skill gap", "skill gaps", "skills am i missing", "skills to focus", "what skills do i lack", "skill deficit", "blocker", "blockers"]):
+            return "SKILL_GAP_QUERY"
+
+        # 3. Market Intelligence
+        if any(phrase in q for phrase in ["market demand", "job market", "industry trends", "emerging skills", "market intelligence", "market signal"]):
+            return "MARKET_QUERY"
+
+        # 4. Review / Decay
+        if any(phrase in q for phrase in ["skill decay", "decayed skill", "need review", "refresh", "forgetting", "review needed"]):
+            return "REVIEW_NEEDED"
+
+        # 5. Prerequisite & Blocking
         if any(w in q for w in ["prerequisite", "prereq", "why is this blocked", "blocked", "unlock", "why can't i access", "why cant i access"]):
             return "PREREQUISITE"
 
-        # 2. Recommendation Explanation
+        # 6. Recommendation Explanation
         if "why" in q and ("recommend" in q or "suggested" in q or "picked" in q or "chosen" in q):
             return "RECOMMENDATION_EXPLANATION"
 
-        # 3. Next Learning Step
+        # 7. Next Learning Step
         if any(phrase in q for phrase in ["what should i learn next", "what to learn next", "next step", "where should i start", "what next", "next topic", "next course", "what to study", "start learning"]):
             return "NEXT_LEARNING_STEP"
 
-        # 4. Roadmap Explanation
+        # 8. Roadmap Explanation
         if any(phrase in q for phrase in ["explain my roadmap", "how is my path structured", "explain my curriculum", "explain roadmap", "my roadmap", "what are the phases", "roadmap structure", "roadmap phases"]):
             return "ROADMAP_EXPLANATION"
 
-        # 5. Skill Gaps
-        if any(phrase in q for phrase in ["skill gap", "skills am i missing", "skills to focus", "what skills do i lack", "skill deficit"]):
-            return "SKILL_GAP"
-
-        # 6. Progress & Velocity
+        # 9. Progress & Velocity
         if any(phrase in q for phrase in ["how am i progressing", "my progress", "what have i completed", "completion rate", "learning velocity"]):
             return "PROGRESS"
 
-        # 7. Practice / Project Suggestion
+        # 10. Practice / Project Suggestion
         if any(phrase in q for phrase in ["practice", "project", "portfolio", "hands-on", "build something", "exercise"]):
             return "PRACTICE_SUGGESTION"
 
-        # 8. General Educational Concepts
+        # 11. General Educational Concepts
         if any(q.startswith(prefix) for prefix in ["what is ", "what are ", "explain ", "how does ", "difference between "]) or any(concept in q for concept in ["gradient descent", "transformer", "backpropagation", "loss function", "overfitting", "regularization", "attention"]):
             return "GENERAL_LEARNING_QUESTION"
 

@@ -9,6 +9,10 @@ from backend.app.models.skill import Skill
 from backend.app.ai.provider import GroundedContext
 from backend.app.ai.intent_detector import IntentDetector
 from backend.app.ai.config import AI_MAX_CONTEXT_ITEMS, AI_MAX_HISTORY_MESSAGES
+from backend.app.intelligence.velocity_model import LearningVelocityEngine
+from backend.app.intelligence.readiness_engine import OpportunityReadinessEngine
+from backend.app.intelligence.market_intelligence import MarketIntelligenceService
+from backend.app.intelligence.decay_engine import SkillDecayEngine
 
 class ContextBuilder:
     def __init__(self, db: Session):
@@ -114,7 +118,21 @@ class ContextBuilder:
         # 5. Intent Detection
         intent = IntentDetector.detect_intent(query)
 
-        # 6. Bounded Conversation History
+        # 6. Extended Intelligence (Readiness, Velocity, Decay, Market)
+        velocity_engine = LearningVelocityEngine(self.db)
+        vel = velocity_engine.calculate_velocity(profile_id=profile.id)
+
+        readiness_engine = OpportunityReadinessEngine(self.db)
+        readiness_data = readiness_engine.calculate_readiness(profile_id=profile.id)
+
+        decay_engine = SkillDecayEngine(self.db)
+        decay_summary = decay_engine.get_mastery_and_decay_summary(profile_id=profile.id)
+        decay_alerts = [d.skill_slug for d in decay_summary.decay if d.decay_state in ("Review Recommended", "Decay Risk")]
+
+        market_service = MarketIntelligenceService()
+        market_res = market_service.get_market_signals(role=goal.target_role)
+
+        # 7. Bounded Conversation History
         history = (conversation_history or [])[-AI_MAX_HISTORY_MESSAGES:]
 
         return GroundedContext(
@@ -132,5 +150,12 @@ class ContextBuilder:
             catalog_sample=catalog_sample,
             user_query=query,
             intent=intent,
-            conversation_history=history
+            conversation_history=history,
+            velocity_score=vel.velocity_score,
+            pacing_state=vel.pacing_state,
+            readiness_score=readiness_data["readiness_score"],
+            readiness_level=readiness_data["readiness_level"],
+            critical_blockers=readiness_data["critical_blockers"],
+            decay_alerts=decay_alerts,
+            market_signals=market_res["signals"][:4]
         )

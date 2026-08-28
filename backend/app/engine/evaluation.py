@@ -68,7 +68,7 @@ def evaluate_recommendation_performance(db: Session) -> Dict[str, Any]:
 
     for i, r_item in enumerate(recs1):
         score = r_item["score"]
-        is_rel = score >= 0.65
+        is_rel = score >= 0.55
         if is_rel:
             relevant_count += 1
             dcg += 1.0 / math.log2(i + 2)

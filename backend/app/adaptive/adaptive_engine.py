@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from sqlalchemy.orm import Session
 from backend.app.models.profile import LearnerProfile
 from backend.app.models.goal import Goal
@@ -8,6 +8,7 @@ from backend.app.adaptive.event_processor import EventProcessor
 from backend.app.adaptive.change_detector import ChangeDetector
 from backend.app.adaptive.roadmap_adapter import RoadmapAdapter
 from backend.app.adaptive.config import ADAPTIVE_ALGORITHM_VERSION
+from backend.app.core.logger import logger
 
 class AdaptiveEngine:
     def __init__(self, db: Session):
@@ -32,7 +33,6 @@ class AdaptiveEngine:
         Change Detection -> (If Meaningful) RecEngine.generate ->
         Roadmap Adaptation (Version + Changes) -> Commit & Return
         """
-        # 1. Load Learner Profile
         profile = self.db.query(LearnerProfile).filter(LearnerProfile.id == profile_id).first()
         if not profile:
             raise ValueError(f"LearnerProfile with id '{profile_id}' not found")
@@ -52,7 +52,6 @@ class AdaptiveEngine:
         )
 
         if event_res.get("is_duplicate", False):
-            # Duplicate event: return early with previous state, zero duplicate updates
             return {
                 "event_processed": True,
                 "is_duplicate": True,
@@ -132,4 +131,113 @@ class AdaptiveEngine:
             "fingerprint": new_fingerprint,
             "algorithm_version": ADAPTIVE_ALGORITHM_VERSION,
             "explanation": explanation_msg
+        }
+
+    def adapt_from_intelligence_signals(
+        self,
+        profile_id: str,
+        force: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Phase 7 Stage 4: Advanced Adaptive Roadmap Evaluation
+        Consumes Velocity, Mastery, and Decay signals to execute deterministic adaptation rules.
+        """
+        from backend.app.intelligence.velocity_model import LearningVelocityEngine
+        from backend.app.intelligence.decay_engine import SkillDecayEngine
+        from backend.app.intelligence.mastery_engine import SkillMasteryEngine
+
+        profile = self.db.query(LearnerProfile).filter(LearnerProfile.id == profile_id).first()
+        if not profile:
+            raise ValueError(f"Profile {profile_id} not found")
+
+        goal = self.db.query(Goal).filter(Goal.profile_id == profile.id, Goal.is_primary == True).first()
+        if not goal:
+            goal = self.db.query(Goal).filter(Goal.profile_id == profile.id).first()
+        if not goal:
+            raise ValueError(f"No goal found for profile {profile_id}")
+
+        velocity_engine = LearningVelocityEngine(self.db)
+        decay_engine = SkillDecayEngine(self.db)
+        mastery_engine = SkillMasteryEngine(self.db)
+
+        velocity_data = velocity_engine.calculate_velocity(profile_id=profile_id)
+        decay_summary = decay_engine.get_mastery_and_decay_summary(profile_id=profile_id)
+        mastery_list = decay_summary.mastery
+
+        trigger = "routine_evaluation"
+        reason = "Routine roadmap optimization"
+        should_adapt = force
+
+        # Rule C: Skill Decay Trigger
+        decayed_skills = [d.skill_slug for d in decay_summary.decay if d.decay_state in ("Review Recommended", "Decay Risk")]
+        if decayed_skills:
+            trigger = "skill_decay"
+            reason = f"Skill freshness decline detected for: {', '.join(decayed_skills[:3])}. Injected review priorities."
+            should_adapt = True
+
+        # Rule A: Accelerated Velocity Trigger
+        elif velocity_data.pacing_state == "accelerated" and velocity_data.velocity_score >= 0.75:
+            trigger = "velocity_accelerated"
+            reason = "Learning velocity is accelerated. Pacing adjusted to prioritize advanced competencies."
+            should_adapt = True
+
+        # Rule B: Behind Schedule Workload Streamlining
+        elif velocity_data.pacing_state == "behind_schedule" and velocity_data.abandonment_rate >= 0.30:
+            trigger = "velocity_behind_schedule"
+            reason = "Velocity indicates behind-schedule pacing. Workload streamlined to focus on critical core topics."
+            should_adapt = True
+
+        # Rule D: High Mastery Bypass
+        elif any(m.mastery_score >= 0.85 and m.competency_tier == "Mastery" for m in mastery_list):
+            high_mastery_skills = [m.skill_slug for m in mastery_list if m.mastery_score >= 0.85]
+            trigger = "mastery_bypass"
+            reason = f"Demonstrated high mastery in {', '.join(high_mastery_skills[:2])}. Accelerated past introductory repetition."
+            should_adapt = True
+
+        # Rule E: Inactive Recovery
+        elif velocity_data.pacing_state == "inactive" and velocity_data.confidence != "insufficient_data":
+            trigger = "inactivity_recovery"
+            reason = "Inactivity period detected. Created gentle recovery pacing preserving all completed modules."
+            should_adapt = True
+
+        if not should_adapt:
+            return {
+                "adaptation_applied": False,
+                "trigger": trigger,
+                "reason": "Current roadmap remains optimal with respect to learning velocity and skill freshness.",
+                "new_version": None,
+                "changes": []
+            }
+
+        # Regenerate recommendations and adapt roadmap
+        rec_result = self.rec_engine.generate(
+            profile_id=profile.id,
+            goal_id=goal.id,
+            top_k=10,
+            persist=True
+        )
+
+        new_fingerprint = StateFingerprinter.generate_fingerprint(profile=profile, goal=goal)
+        profile.state_hash = new_fingerprint
+
+        roadmap_changed, new_version, changes = self.roadmap_adapter.adapt_roadmap(
+            profile=profile,
+            goal=goal,
+            new_recommendations=rec_result.get("recommendations", []),
+            new_phases=rec_result.get("phases", []),
+            trigger=trigger,
+            reason=reason,
+            fingerprint=new_fingerprint
+        )
+
+        self.db.commit()
+
+        return {
+            "adaptation_applied": roadmap_changed,
+            "trigger": trigger,
+            "reason": reason,
+            "new_version": new_version.version_number if new_version else None,
+            "version_hash": new_version.version_hash if new_version else None,
+            "changes": changes,
+            "explanation": f"Roadmap adapted via {trigger}: {reason}"
         }

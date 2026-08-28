@@ -24,13 +24,21 @@ class GroundedContext(BaseModel):
     skills: List[Dict[str, Any]]  # [{"slug": "python", "name": "Python", "confidence": 0.80, "status": "mastered"}]
     skill_gaps: List[str]
     active_phase: str
-    current_roadmap_items: List[Dict[str, Any]]  # [{"resource_id": "...", "title": "...", "phase": 1, "difficulty": "Intermediate"}]
+    current_roadmap_items: List[Dict[str, Any]]
     completed_items: List[str]
     recommendation_explanations: List[Dict[str, Any]]
     catalog_sample: List[Dict[str, Any]]
     user_query: str
     intent: str
     conversation_history: List[Dict[str, str]] = []
+    # Phase 7 Stage 8 Extended Intelligence Context
+    velocity_score: Optional[float] = 1.0
+    pacing_state: Optional[str] = "on_track"
+    readiness_score: Optional[float] = None
+    readiness_level: Optional[str] = None
+    critical_blockers: List[str] = []
+    decay_alerts: List[str] = []
+    market_signals: List[Dict[str, Any]] = []
 
 class AIResponse(BaseModel):
     message: str

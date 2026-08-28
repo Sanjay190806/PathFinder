@@ -49,6 +49,50 @@ class DeterministicProvider(AIProvider):
             else:
                 message = "Recommendations are generated deterministically based on skill gaps, prerequisite DAG readiness, and difficulty fit."
 
+        elif intent == "READINESS_QUERY":
+            r_score = context.readiness_score if context.readiness_score is not None else 50.0
+            r_level = context.readiness_level or "Developing Readiness"
+            blocker_text = f" Critical blockers needing attention: {', '.join(context.critical_blockers)}." if context.critical_blockers else " No critical prerequisite blockers are currently detected."
+            message = (
+                f"Your **PathFinder Readiness Estimate** for **{context.target_role}** is **{r_level} ({r_score}%)**.{blocker_text} "
+                f"Your learning pace is {context.pacing_state.replace('_', ' ')}."
+            )
+            sources.append(GroundedSource(type="readiness", title=f"Readiness: {r_level}"))
+
+        elif intent == "SKILL_GAP_QUERY":
+            gaps = context.skill_gaps or ["core curriculum modules"]
+            blockers = context.critical_blockers
+            b_info = f" with critical blockers in **{', '.join(blockers)}**" if blockers else ""
+            message = (
+                f"For your goal as a **{context.target_role}**, your active skill gaps include **{', '.join(gaps[:3])}**{b_info}. "
+                f"Completing these will unlock advanced curriculum modules."
+            )
+            sources.append(GroundedSource(type="skill", title=f"{context.target_role} Skill Gaps"))
+
+        elif intent == "MARKET_QUERY":
+            sig_list = context.market_signals or []
+            if sig_list:
+                top_sig = sig_list[0]
+                message = (
+                    f"Industry signals for **{context.target_role}** indicate high demand for **{top_sig.get('skill_slug', 'core technologies')}** "
+                    f"({top_sig.get('signal_value', 'High Relevance')}). Note: Market signals are provided via {top_sig.get('source_type', 'mock')} reference data."
+                )
+                sources.append(GroundedSource(type="market", title=f"{context.target_role} Market Signal"))
+            else:
+                message = f"Market demand for {context.target_role} emphasizes foundational competencies and hands-on implementation skills."
+
+        elif intent == "REVIEW_NEEDED":
+            if context.decay_alerts:
+                message = (
+                    f"Skill decay modeling recommends reviewing: **{', '.join(context.decay_alerts[:2])}**. "
+                    f"Refreshing these competencies will maintain your prerequisite readiness."
+                )
+                actions.append(ActionProposal(
+                    action_type="SUGGEST_REVIEW",
+                    reason=f"Skill freshness decline for {context.decay_alerts[0]}"
+                ))
+            else:
+                message = "All of your active skill competencies are fresh and within verified retention windows."
         elif intent == "ROADMAP_EXPLANATION":
             phases_seen = []
             for it in context.current_roadmap_items:
@@ -75,7 +119,7 @@ class DeterministicProvider(AIProvider):
             )
             sources.append(GroundedSource(type="prerequisite", title="Skill Dependency DAG"))
 
-        elif intent == "SKILL_GAP":
+        elif intent in ("SKILL_GAP", "SKILL_GAP_QUERY"):
             message = (
                 f"For your target role as a **{context.target_role}**, your highest-priority skill gaps are: "
                 f"**{', '.join(context.skill_gaps) if context.skill_gaps else 'All core skills on track'}**. "

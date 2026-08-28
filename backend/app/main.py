@@ -19,7 +19,8 @@ from backend.app.api.v1 import (
     ai_chat,
     demo,
     recommendations,
-    interactions
+    interactions,
+    intelligence
 )
 
 @asynccontextmanager
@@ -63,6 +64,7 @@ app.include_router(analytics.router, prefix=settings.API_V1_STR)
 app.include_router(ai_chat.router, prefix=settings.API_V1_STR)
 app.include_router(interactions.router, prefix=settings.API_V1_STR)
 app.include_router(demo.router, prefix=settings.API_V1_STR)
+app.include_router(intelligence.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

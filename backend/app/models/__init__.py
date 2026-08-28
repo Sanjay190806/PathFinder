@@ -14,6 +14,7 @@ from backend.app.models.recommendation import Recommendation
 from backend.app.models.progress import Progress
 from backend.app.models.feedback import Feedback
 from backend.app.models.interaction import Interaction
+from backend.app.models.behavior_event import BehaviorEvent
 from backend.app.models.assessment import (
     Assessment,
     AssessmentQuestion,
@@ -42,4 +43,5 @@ __all__ = [
     "Assessment",
     "AssessmentQuestion",
     "AssessmentResponse",
+    "BehaviorEvent",
 ]
