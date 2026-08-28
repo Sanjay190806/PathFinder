@@ -1,4 +1,4 @@
-from pydantic import ConfigDict, BaseModel
+from pydantic import ConfigDict, BaseModel, Field
 from typing import List, Dict, Optional, Any
 from backend.app.schemas.skill import LearnerSkillIn, LearnerSkillOut
 from backend.app.schemas.goal import GoalOut
@@ -10,7 +10,7 @@ class ProfileCreate(BaseModel):
     weekly_hours: int = 10
     preferred_formats: List[str] = ["video", "hands-on", "projects"]
     learning_objective: str = "Placement"
-    target_role: str = "AI/ML Engineer"
+    target_role: str = Field(..., description="Target career domain role")
     skills: List[LearnerSkillIn] = []
 
 class ProfileUpdate(BaseModel):

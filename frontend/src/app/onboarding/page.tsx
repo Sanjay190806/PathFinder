@@ -15,7 +15,8 @@ export default function OnboardingPage() {
   const [fieldOfStudy, setFieldOfStudy] = useState('Computer Science');
   const [experienceLevel, setExperienceLevel] = useState('Beginner');
 
-  const [targetRole, setTargetRole] = useState('AI/ML Engineer');
+  const [careerRoles, setCareerRoles] = useState<any[]>([]);
+  const [targetRole, setTargetRole] = useState<string>('');
   const [customGoal, setCustomGoal] = useState('');
 
   const [availableSkills, setAvailableSkills] = useState<any[]>([]);
@@ -33,6 +34,20 @@ export default function OnboardingPage() {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({ 0: 0, 1: 1, 2: 1 });
 
   useEffect(() => {
+    api.getCareerCatalog().then(res => {
+      if (res && res.length > 0) {
+        setCareerRoles(res);
+        setTargetRole(res[0].role);
+      }
+    }).catch(() => {
+      api.getGoalTemplates().then(res => {
+        if (res && res.length > 0) {
+          setCareerRoles(res);
+          setTargetRole(res[0].role);
+        }
+      }).catch(() => {});
+    });
+
     api.getSkills().then(res => {
       if (res && res.length > 0) {
         setAvailableSkills(res);
@@ -231,14 +246,14 @@ export default function OnboardingPage() {
               <p className="text-xs text-gray-400 mt-1">Our recommendation engine will map the optimal curriculum to this destination.</p>
 
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  { role: "AI/ML Engineer", desc: "Machine Learning, PyTorch, Transformers, LangChain, MLOps" },
-                  { role: "Data Scientist", desc: "Python, SQL, EDA, Statistical Inference, PySpark" },
-                  { role: "Full Stack Developer", desc: "TypeScript, React, Next.js, REST APIs, Databases" },
-                  { role: "Cloud / DevOps Engineer", desc: "Linux, CI/CD, Docker, Kubernetes, AWS" },
-                  { role: "Cybersecurity Analyst", desc: "Networking, OWASP Top 10, Cryptography, Pentesting" },
-                  { role: "Software Engineer", desc: "Data Structures, Algorithms, System Design, Backend" }
-                ].map((item) => (
+                {(careerRoles.length > 0 ? careerRoles : [
+                  { role: "AI/ML Engineer", description: "Machine Learning, PyTorch, Transformers, LangChain, MLOps" },
+                  { role: "Data Scientist", description: "Python, SQL, EDA, Statistical Inference, PySpark" },
+                  { role: "Full Stack Developer", description: "TypeScript, React, Next.js, REST APIs, Databases" },
+                  { role: "Cloud / DevOps Engineer", description: "Linux, CI/CD, Docker, Kubernetes, AWS" },
+                  { role: "Cybersecurity Analyst", description: "Networking, OWASP Top 10, Cryptography, Pentesting" },
+                  { role: "Software Engineer", description: "Data Structures, Algorithms, System Design, Backend" }
+                ]).map((item) => (
                   <button
                     key={item.role}
                     type="button"
@@ -258,7 +273,7 @@ export default function OnboardingPage() {
                         <CheckCircle2 className="h-4 w-4 text-primary-400 shrink-0" />
                       )}
                     </div>
-                    <p className="text-[11px] text-gray-400 mt-1 leading-snug">{item.desc}</p>
+                    <p className="text-[11px] text-gray-400 mt-1 leading-snug">{item.description || item.desc}</p>
                   </button>
                 ))}
               </div>

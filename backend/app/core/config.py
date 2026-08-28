@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     DATABASE_URL: str = "sqlite:///./pathfinder.db"
     GEMINI_API_KEY: Optional[str] = None
+    AI_PROVIDER: str = "gemini"
+    AI_REQUEST_TIMEOUT_SECONDS: int = 20
+    AI_MAX_INPUT_CHARS: int = 4000
+    AI_MAX_CONTEXT_ITEMS: int = 10
     GEMINI_MODEL: str = "gemini-1.5-flash"
     EMBEDDING_MODEL: str = "text-embedding-004"
     EMBEDDING_MODEL_VERSION: str = "v1.0"

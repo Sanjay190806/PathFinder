@@ -21,35 +21,39 @@ class PathSequencer:
         Sequences candidates into a pedagogically sound 5-phase curriculum:
         Phase 1: Strengthen Foundations (Prerequisites & Core syntax)
         Phase 2: Core Competencies (Fundamental algorithms & tooling)
-        Phase 3: Deep Specialization (Advanced models & specialized frameworks)
-        Phase 4: Engineering & Deployment (MLOps, containers, APIs, CI/CD)
-        Phase 5: Capstone & Portfolio (Real-world end-to-end projects)
+        Phase 3: Deep Specialization (Advanced architectures & specialized domain frameworks)
+        Phase 4: Engineering & Deployment (Production tooling, pipelines & integration)
+        Phase 5: Capstone & Portfolio (Real-world end-to-end projects & portfolio preparation)
         
-        Strictly guarantees that prerequisite resources precede dependent resources.
+        Purely derived from:
+        - Skill DAG topological depth
+        - Prerequisite hierarchy
+        - Resource difficulty level
+        - Explicit resource type metadata (project / tooling / course)
         """
         phases = [
-            PhaseDefinition(1, "Strengthen Foundations", "Core prerequisites, programming syntax & fundamental math"),
-            PhaseDefinition(2, "Core Competencies", "Core algorithms, data analysis & foundational domain tooling"),
-            PhaseDefinition(3, "Deep Specialization", "Advanced architectures, deep models & specialized frameworks"),
-            PhaseDefinition(4, "Engineering & Deployment", "Production APIs, Docker, pipelines & testing"),
+            PhaseDefinition(1, "Strengthen Foundations", "Core prerequisites, syntax & fundamental foundations"),
+            PhaseDefinition(2, "Core Competencies", "Core algorithms, domain tooling & essential competencies"),
+            PhaseDefinition(3, "Deep Specialization", "Advanced architectures, deep specialization & frameworks"),
+            PhaseDefinition(4, "Engineering & Deployment", "Production tooling, pipelines, testing & deployment"),
             PhaseDefinition(5, "Capstone & Portfolio", "Real-world end-to-end projects & portfolio preparation")
         ]
 
-        # 1. Classify candidate items into appropriate phase buckets
+        # 1. Classify candidate items into appropriate phase buckets using structural data
         for cand in selected_candidates:
             res = cand.resource
-            diff = res.difficulty.lower() if res.difficulty else "beginner"
-            r_type = (res.resource_type or "").lower()
-            title_lower = res.title.lower()
+            diff = (res.difficulty or "beginner").lower()
+            r_type = (res.resource_type or "course").lower()
+            prereq_depth = self._get_min_prereq_depth(cand)
 
-            if r_type == "project" or "capstone" in title_lower or "portfolio" in title_lower or "ledger" in title_lower or "assistant" in title_lower:
+            if r_type in ("project", "capstone", "portfolio"):
                 phases[4].items.append(cand)  # Phase 5: Capstone
-            elif "deploy" in title_lower or "docker" in title_lower or "mlops" in title_lower or "cloud" in title_lower or "api" in title_lower or "ci/cd" in title_lower or "kubernetes" in title_lower:
-                phases[3].items.append(cand)  # Phase 4: Engineering
-            elif diff == "advanced" or "transformer" in title_lower or "deep learning" in title_lower or "neural" in title_lower or "security" in title_lower:
-                phases[2].items.append(cand)  # Phase 3: Specialization
-            elif diff == "intermediate" or "machine learning" in title_lower or "scikit" in title_lower or "react" in title_lower or "sql" in title_lower:
-                phases[1].items.append(cand)  # Phase 2: Core
+            elif r_type in ("tooling", "system", "infrastructure", "devops"):
+                phases[3].items.append(cand)  # Phase 4: Engineering & Tooling
+            elif prereq_depth >= 2 or diff == "advanced":
+                phases[2].items.append(cand)  # Phase 3: Deep Specialization
+            elif prereq_depth == 1 or diff == "intermediate":
+                phases[1].items.append(cand)  # Phase 2: Core Competencies
             else:
                 phases[0].items.append(cand)  # Phase 1: Foundations
 

@@ -80,8 +80,8 @@ def get_analytics(current_user: User = Depends(get_current_user), db: Session = 
         active_phase=active_phase,
         overall_progress_percentage=round(pct, 1),
         skill_mastery=skill_points[:8],
-        strengths=strengths[:4] if strengths else ["Python Programming", "SQL"],
-        weaknesses=weaknesses[:4] if weaknesses else ["Deep Learning", "Transformers"],
+        strengths=strengths[:4] if strengths else [],
+        weaknesses=weaknesses[:4] if weaknesses else [],
         acceptance_rate=round(acceptance_rate, 1),
         weekly_velocity=profile.velocity_score or 1.0
     )

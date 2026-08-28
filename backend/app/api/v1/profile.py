@@ -12,6 +12,7 @@ from backend.app.schemas.profile import ProfileCreate, ProfileUpdate, ProfileOut
 from backend.app.schemas.skill import LearnerSkillOut
 from backend.app.schemas.goal import GoalOut
 from backend.app.engine.adaptive import generate_or_adapt_roadmap
+from backend.app.core.career_catalog import resolve_target_skills_for_role
 
 router = APIRouter(prefix="/profile", tags=["Learner Profile"])
 
@@ -68,6 +69,14 @@ def complete_onboarding(
         db.add(profile)
         db.flush()
 
+    # 1. Resolve Target Skills dynamically from centralized Career Domain Catalog
+    target_skills = resolve_target_skills_for_role(payload.target_role)
+    if not target_skills:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Career role '{payload.target_role}' is not recognized in the career domain catalog."
+        )
+
     profile.education_level = payload.education_level
     profile.field_of_study = payload.field_of_study
     profile.experience_level = payload.experience_level
@@ -95,22 +104,10 @@ def complete_onboarding(
 
     profile.skill_confidence_map = conf_map
 
-    target_skills_by_role = {
-        "AI/ML Engineer": ["python", "linear-algebra", "machine-learning", "deep-learning", "transformers", "langchain-agents", "vector-rag", "mlops"],
-        "Data Scientist": ["python", "pandas", "sql", "eda", "machine-learning", "statistics", "pyspark"],
-        "Full Stack Developer": ["typescript", "react-nextjs", "tailwind", "rest-apis", "graphql-websockets", "docker"],
-        "Cloud / DevOps Engineer": ["linux", "git-cicd", "docker", "kubernetes", "aws"],
-        "Cybersecurity Analyst": ["networking", "linux", "web-security", "cryptography", "pentesting"],
-        "Software Engineer": ["python", "dsa", "rest-apis", "system-design", "docker"]
-    }
-    
-    target_role = payload.target_role or "AI/ML Engineer"
-    target_skills = target_skills_by_role.get(target_role, ["python", "machine-learning", "deep-learning"])
-
     goal = Goal(
         profile_id=profile.id,
-        title=f"Become a {target_role}",
-        target_role=target_role,
+        title=f"Become a {payload.target_role}",
+        target_role=payload.target_role,
         target_skills=target_skills,
         is_primary=True,
         status="active"
@@ -122,7 +119,7 @@ def complete_onboarding(
         profile=profile,
         goal=goal,
         trigger="initial_generation",
-        change_reason=f"Initial roadmap created for {target_role}",
+        change_reason=f"Initial roadmap created for {payload.target_role}",
         db=db,
         idempotency_key=f"onboarding-{profile.id}"
     )

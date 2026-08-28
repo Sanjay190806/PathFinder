@@ -63,7 +63,7 @@ def submit_assessment(
         if is_correct:
             correct_count += 1
 
-        skill_slug = q.skill.slug if q.skill else "python"
+        skill_slug = q.skill.slug if q.skill else "general"
         event_id = str(uuid.uuid4())
 
         # Process quiz adaptation per skill question
