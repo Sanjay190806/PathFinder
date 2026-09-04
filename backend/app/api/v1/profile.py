@@ -8,13 +8,19 @@ from backend.app.models.user import User
 from backend.app.models.profile import LearnerProfile
 from backend.app.models.goal import Goal
 from backend.app.models.skill import Skill, LearnerSkill
-from backend.app.schemas.profile import ProfileCreate, ProfileUpdate, ProfileOut
+from backend.app.schemas.profile import ProfileCreate, ProfileUpdate, ProfileOut, EducationProfileUpdate
 from backend.app.schemas.skill import LearnerSkillOut
 from backend.app.schemas.goal import GoalOut
 from backend.app.engine.adaptive import generate_or_adapt_roadmap
 from backend.app.core.career_catalog import resolve_target_skills_for_role
+from backend.app.core.india_taxonomy import get_taxonomy_summary
 
 router = APIRouter(prefix="/profile", tags=["Learner Profile"])
+
+@router.get("/taxonomy", response_model=Dict[str, Any])
+def get_india_taxonomy():
+    """Returns the JanSahay / SIH26101 Indian Education Taxonomy schema."""
+    return get_taxonomy_summary()
 
 @router.get("", response_model=ProfileOut)
 def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -53,6 +59,23 @@ def get_profile(current_user: User = Depends(get_current_user), db: Session = De
         skill_confidence_map=profile.skill_confidence_map or {},
         velocity_score=profile.velocity_score,
         difficulty_tolerance=profile.difficulty_tolerance,
+        country=profile.country or "India",
+        education_stage=profile.education_stage,
+        education_domain=profile.education_domain,
+        education_stream=profile.education_stream,
+        specialization=profile.specialization,
+        qualification=profile.qualification,
+        current_role=profile.current_role,
+        work_domain=profile.work_domain,
+        institution=profile.institution,
+        graduation_year=profile.graduation_year,
+        custom_education_label=profile.custom_education_label,
+        education_profile=profile.education_profile,
+        board=profile.board,
+        subject_combination=profile.subject_combination,
+        institution_type=profile.institution_type,
+        current_year=profile.current_year,
+        subjects=profile.subjects,
         skills=skills_out,
         primary_goal=GoalOut.model_validate(primary_goal) if primary_goal else None
     )
@@ -83,6 +106,42 @@ def complete_onboarding(
     profile.weekly_hours = payload.weekly_hours
     profile.preferred_formats = payload.preferred_formats
     profile.learning_objective = payload.learning_objective
+
+    # 🇮🇳 Save JanSahay / SIH26101 Indian Education Taxonomy attributes
+    if payload.country is not None:
+        profile.country = payload.country
+    if payload.education_stage is not None:
+        profile.education_stage = payload.education_stage
+    if payload.education_domain is not None:
+        profile.education_domain = payload.education_domain
+    if payload.education_stream is not None:
+        profile.education_stream = payload.education_stream
+    if payload.specialization is not None:
+        profile.specialization = payload.specialization
+    if payload.qualification is not None:
+        profile.qualification = payload.qualification
+    if payload.current_role is not None:
+        profile.current_role = payload.current_role
+    if payload.work_domain is not None:
+        profile.work_domain = payload.work_domain
+    if payload.institution is not None:
+        profile.institution = payload.institution
+    if payload.graduation_year is not None:
+        profile.graduation_year = payload.graduation_year
+    if payload.custom_education_label is not None:
+        profile.custom_education_label = payload.custom_education_label
+    if payload.education_profile is not None:
+        profile.education_profile = payload.education_profile
+    if payload.board is not None:
+        profile.board = payload.board
+    if payload.subject_combination is not None:
+        profile.subject_combination = payload.subject_combination
+    if payload.institution_type is not None:
+        profile.institution_type = payload.institution_type
+    if payload.current_year is not None:
+        profile.current_year = payload.current_year
+    if payload.subjects is not None:
+        profile.subjects = payload.subjects
 
     db.query(LearnerSkill).filter(LearnerSkill.profile_id == profile.id).delete()
     db.query(Goal).filter(Goal.profile_id == profile.id).delete()
@@ -123,6 +182,57 @@ def complete_onboarding(
         db=db,
         idempotency_key=f"onboarding-{profile.id}"
     )
+
+    db.commit()
+    return get_profile(current_user, db)
+
+@router.put("/education", response_model=ProfileOut)
+def update_education_profile(
+    payload: EducationProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Updates learner's JanSahay / SIH26101 Indian Education Taxonomy attributes."""
+    profile = current_user.profile
+    if not profile:
+        profile = LearnerProfile(user_id=current_user.id)
+        db.add(profile)
+        db.flush()
+
+    if payload.country is not None:
+        profile.country = payload.country
+    if payload.education_stage is not None:
+        profile.education_stage = payload.education_stage
+    if payload.education_domain is not None:
+        profile.education_domain = payload.education_domain
+    if payload.education_stream is not None:
+        profile.education_stream = payload.education_stream
+    if payload.specialization is not None:
+        profile.specialization = payload.specialization
+    if payload.qualification is not None:
+        profile.qualification = payload.qualification
+    if payload.current_role is not None:
+        profile.current_role = payload.current_role
+    if payload.work_domain is not None:
+        profile.work_domain = payload.work_domain
+    if payload.institution is not None:
+        profile.institution = payload.institution
+    if payload.graduation_year is not None:
+        profile.graduation_year = payload.graduation_year
+    if payload.custom_education_label is not None:
+        profile.custom_education_label = payload.custom_education_label
+    if payload.education_profile is not None:
+        profile.education_profile = payload.education_profile
+    if payload.board is not None:
+        profile.board = payload.board
+    if payload.subject_combination is not None:
+        profile.subject_combination = payload.subject_combination
+    if payload.institution_type is not None:
+        profile.institution_type = payload.institution_type
+    if payload.current_year is not None:
+        profile.current_year = payload.current_year
+    if payload.subjects is not None:
+        profile.subjects = payload.subjects
 
     db.commit()
     return get_profile(current_user, db)

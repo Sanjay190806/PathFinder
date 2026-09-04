@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     DATABASE_URL: str = "sqlite:///./pathfinder.db"
     GEMINI_API_KEY: Optional[str] = None
+    GROQ_API_KEY: Optional[str] = None
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    YOUTUBE_API_KEY: Optional[str] = None
+    MARKET_INTELLIGENCE_CACHE_HOURS: int = 24
+    RESOURCE_VERIFICATION_CACHE_HOURS: int = 48
+    RESOURCE_VERIFICATION_TIMEOUT_SECONDS: int = 10
     AI_PROVIDER: str = "gemini"
     AI_REQUEST_TIMEOUT_SECONDS: int = 20
     AI_MAX_INPUT_CHARS: int = 4000

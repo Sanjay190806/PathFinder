@@ -12,10 +12,27 @@ ALLOWED_ACTION_TYPES = {
     "EXPLAIN_RECOMMENDATION",
     "EXPLAIN_ROADMAP_STEP",
     "SUGGEST_PRACTICE",
-    "SUGGEST_REVIEW"
+    "SUGGEST_REVIEW",
+    "ADD_TO_PLAN",
+    "VIEW_OPPORTUNITY"
 }
 
-SYSTEM_INSTRUCTION_PROMPT = """You are the PathFinder AI Learning Coach ? an educational AI mentor for technical career development.
+SUPPORTED_LANGUAGES = {
+    "en": {"code": "en", "name": "English", "native_name": "English"},
+    "hi": {"code": "hi", "name": "Hindi", "native_name": "हिन्दी"},
+    "ta": {"code": "ta", "name": "Tamil", "native_name": "தமிழ்"},
+    "te": {"code": "te", "name": "Telugu", "native_name": "తెలుగు"},
+    "kn": {"code": "kn", "name": "Kannada", "native_name": "ಕನ್ನಡ"},
+    "ml": {"code": "ml", "name": "Malayalam", "native_name": "മലയാളം"},
+    "mr": {"code": "mr", "name": "Marathi", "native_name": "मराठी"},
+    "bn": {"code": "bn", "name": "Bengali", "native_name": "বাংলা"},
+    "gu": {"code": "gu", "name": "Gujarati", "native_name": "ગુજરાતી"},
+    "pa": {"code": "pa", "name": "Punjabi", "native_name": "ਪੰਜਾਬੀ"},
+    "or": {"code": "or", "name": "Odia", "native_name": "ଓଡ଼ିଆ"},
+    "ur": {"code": "ur", "name": "Urdu", "native_name": "اردو"}
+}
+
+SYSTEM_INSTRUCTION_PROMPT = """You are the PathFinder AI Learning Coach — an educational AI mentor for technical career development.
 
 CORE OPERATIONAL RULES:
 1. Grounded Truth: You must ONLY reference the learner's actual skills, progress, roadmap, and catalog resources provided in the <grounded_context> section.

@@ -19,6 +19,7 @@ interface AIAssistantDrawerProps {
 
 export function AIAssistantDrawer({ isOpen, onClose, onPlanAdjusted }: AIAssistantDrawerProps) {
   const [context, setContext] = useState<CoachContext | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
@@ -35,6 +36,9 @@ export function AIAssistantDrawer({ isOpen, onClose, onPlanAdjusted }: AIAssista
     try {
       const data = await api.getCoachContext();
       setContext(data);
+      if (data?.preferred_language) {
+        setSelectedLanguage(data.preferred_language);
+      }
     } catch (err) {
       console.warn("Could not load coach context", err);
     }
@@ -66,7 +70,10 @@ export function AIAssistantDrawer({ isOpen, onClose, onPlanAdjusted }: AIAssista
     setIsLoading(true);
 
     try {
-      const res = await api.chatAssistant({ message: text });
+      const res = await api.chatAssistant({
+        message: text,
+        preferred_language: selectedLanguage
+      });
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: "assistant",
@@ -74,6 +81,7 @@ export function AIAssistantDrawer({ isOpen, onClose, onPlanAdjusted }: AIAssista
         suggested_focus: res.suggested_focus,
         suggested_actions: res.suggested_actions,
         grounding_references: res.grounding_references,
+        sources: res.sources,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       };
       setMessages((prev) => [...prev, assistantMsg]);
@@ -99,7 +107,12 @@ export function AIAssistantDrawer({ isOpen, onClose, onPlanAdjusted }: AIAssista
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="flex h-full w-full max-w-md flex-col bg-surface border-l border-surface-border shadow-2xl">
         {/* Header */}
-        <CoachHeader targetRole={context?.target_role} onClose={onClose} />
+        <CoachHeader
+          targetRole={context?.target_role}
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={setSelectedLanguage}
+          onClose={onClose}
+        />
 
         {/* Live Grounded Context Summary */}
         <CoachContextSummary context={context} />

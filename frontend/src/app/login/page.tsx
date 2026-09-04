@@ -3,9 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Compass, Zap, Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Compass, Zap, Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { Button, Input, Card, Alert } from "@/components/ui";
 import { api, setAuthToken } from "@/lib/api";
+import { HierarchicalEducationSelector } from "@/components/education/HierarchicalEducationSelector";
+import { StructuredEducationSelection } from "@/lib/educationCatalog";
+import { SIH26101Profile } from "@/lib/indiaEducationTaxonomy";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,11 +19,27 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
 
+  // 🇮🇳 JanSahay / SIH26101 Stream Selector on Sign-in Page
+  const [showStreamPicker, setShowStreamPicker] = useState(false);
+  const [selectedStreamProfile, setSelectedStreamProfile] = useState<SIH26101Profile>({
+    country: "India",
+    education_stage: "undergraduate",
+    domain: "computer_it",
+    stream: "cs_core",
+    specialization: "Artificial Intelligence & Machine Learning (AI/ML)",
+    qualification: "B.Tech CSE",
+    current_role: "Student / Fresher",
+    work_domain: "Artificial Intelligence & Machine Learning"
+  });
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pathfinder_indian_stream_profile", JSON.stringify(selectedStreamProfile));
+      }
       const res = await api.login({ email, password });
       setAuthToken(res.access_token);
       router.push("/dashboard");
@@ -37,8 +56,25 @@ export default function LoginPage() {
     setIsDemoLoading(true);
     setError(null);
     try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pathfinder_indian_stream_profile", JSON.stringify(selectedStreamProfile));
+      }
       const res = await api.demoLogin();
       setAuthToken(res.access_token);
+
+      // Save selected stream to demo profile
+      await api.updateEducationProfile({
+        country: "India",
+        education_stage: selectedStreamProfile.education_stage,
+        education_domain: selectedStreamProfile.domain,
+        education_stream: selectedStreamProfile.stream,
+        specialization: selectedStreamProfile.specialization,
+        qualification: selectedStreamProfile.qualification,
+        current_role: selectedStreamProfile.current_role,
+        work_domain: selectedStreamProfile.work_domain,
+        education_profile: selectedStreamProfile
+      }).catch(() => {});
+
       router.push("/dashboard");
     } catch (err: any) {
       setError("Demo login could not be initiated. Please check the backend connection.");
@@ -57,25 +93,25 @@ export default function LoginPage() {
           </div>
           <span className="font-bold text-white text-base tracking-tight">PathFinder</span>
         </Link>
-        <Link href="/onboarding" className="text-xs font-semibold text-primary-400 hover:text-primary-300">
+        <Link href="/register" className="text-xs font-semibold text-primary-400 hover:text-primary-300">
           Create an account &rarr;
         </Link>
       </header>
 
       {/* Main Content Split Layout */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left: Brand / Narrative Feature */}
-          <div className="hidden lg:flex flex-col justify-between space-y-8 pr-6">
+          <div className="hidden lg:flex lg:col-span-5 flex-col justify-between space-y-6 pr-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-lg border border-primary-500/30 bg-primary-950/60 px-3 py-1 text-xs font-semibold text-primary-300 mb-4">
-                Adaptive Career Path Recommender
+                🇮🇳 JanSahay / SIH26101 Education Taxonomy
               </div>
               <h1 className="text-3xl font-extrabold text-white tracking-tight leading-tight">
                 Resume your personalized learning roadmap.
               </h1>
               <p className="text-sm text-slate-400 mt-3 leading-relaxed">
-                Log in to inspect newly unlocked skills, track your weekly velocity, and review AI Coach recommendations.
+                Log in to inspect newly unlocked skills, track your weekly velocity, and review AI Coach recommendations calibrated to your specific educational stream.
               </p>
             </div>
 
@@ -83,30 +119,91 @@ export default function LoginPage() {
               {[
                 "Prerequisite DAG graph with 0% dependency violations",
                 "Real-time roadmap versioning and change audit trail",
-                "Explainable multi-signal recommendation scoring"
+                "Full support for 18 canonical Indian domains & official statistics",
+                "Dynamic calibration based on Education Stage and Specialization"
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2.5 text-xs text-slate-300">
-                  <CheckCircle2 className="h-4 w-4 text-accent-cyan shrink-0" />
+                <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
+                  <CheckCircle2 className="h-4 w-4 text-accent-cyan shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </div>
               ))}
             </div>
 
             <div className="p-4 rounded-2xl border border-surface-border bg-surface-raised/60 text-xs text-slate-400">
-              <span className="font-bold text-white">Evaluator Note:</span> For quick hackathon testing, click the <span className="text-accent-cyan font-semibold">Quick Demo Login</span> button to enter as demo learner Alex Mercer.
+              <span className="font-bold text-white">Evaluator Note:</span> You can select any Indian stream (School, 11th–12th PCM/PCB/Commerce, Polytechnic, or SIH26101 Official Statistics) using the dropdown on the sign-in card, then click <span className="text-accent-cyan font-semibold">Quick Demo Login</span> to test immediately!
             </div>
           </div>
 
           {/* Right: Login Form Card */}
-          <Card variant="default" className="w-full max-w-md mx-auto p-6 sm:p-8 shadow-2xl">
-            <h2 className="text-xl font-bold text-white tracking-tight">Sign in</h2>
-            <p className="text-xs text-slate-400 mt-1">Enter your email and password to access your dashboard.</p>
+          <Card variant="default" className="w-full lg:col-span-7 p-6 sm:p-8 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-white tracking-tight">Sign in</h2>
+                <p className="text-xs text-slate-400 mt-1">Enter your credentials to access your dashboard.</p>
+              </div>
+              <span className="text-2xl">🇮🇳</span>
+            </div>
 
             {error && (
               <div className="mt-4">
                 <Alert variant="danger" message={error} onClose={() => setError(null)} />
               </div>
             )}
+
+            {/* 🇮🇳 JanSahay / SIH26101 Stream Dropdown on Sign-In Page */}
+            <div className="mt-4 p-3 rounded-2xl border border-primary-500/30 bg-primary-950/40">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary-400" />
+                  <div>
+                    <div className="text-xs font-bold text-white">
+                      Education Stream in India
+                    </div>
+                    <div className="text-[11px] text-slate-300 font-medium">
+                      {selectedStreamProfile.specialization || selectedStreamProfile.stream} ({selectedStreamProfile.qualification || selectedStreamProfile.education_stage})
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowStreamPicker(!showStreamPicker)}
+                  className="text-xs text-primary-400 hover:text-primary-300 font-semibold flex items-center gap-1 px-2 py-1 rounded bg-surface-raised/80"
+                >
+                  {showStreamPicker ? "Hide" : "Change Stream"}
+                  {showStreamPicker ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+
+              {showStreamPicker && (
+                <div className="mt-4 pt-3 border-t border-surface-border">
+                  <HierarchicalEducationSelector
+                    compact={true}
+                    showInstitutionFields={false}
+                    value={{
+                      education_level: selectedStreamProfile.education_stage,
+                      stream: selectedStreamProfile.domain,
+                      specialization: selectedStreamProfile.stream,
+                      qualification: selectedStreamProfile.qualification
+                    }}
+                    onChange={(sel) => {
+                      setSelectedStreamProfile({
+                        country: "India",
+                        education_stage: sel.education_level,
+                        domain: sel.stream,
+                        stream: sel.specialization,
+                        specialization: sel.custom_education_label || sel.specialization,
+                        qualification: sel.qualification,
+                        current_role: "Student / Fresher",
+                        work_domain: "Software & Technology"
+                      });
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("pathfinder_education_selection", JSON.stringify(sel));
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
 
             <form onSubmit={handleLogin} className="mt-5 space-y-4">
               <Input
@@ -125,7 +222,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="????????"
+                placeholder="••••••••"
                 leftIcon={<Lock className="h-4 w-4" />}
                 rightIcon={
                   <button
@@ -157,14 +254,14 @@ export default function LoginPage() {
                 className="w-full"
                 leftIcon={<Zap className="h-4 w-4 text-accent-cyan" />}
               >
-                Quick Demo Login (Alex Mercer)
+                Quick Demo Login with Chosen Stream
               </Button>
             </div>
 
             <p className="mt-6 text-center text-xs text-slate-400">
               Don&apos;t have an account yet?{" "}
-              <Link href="/onboarding" className="text-primary-400 font-semibold hover:underline">
-                Get Started
+              <Link href="/register" className="text-primary-400 font-semibold hover:underline">
+                Create Account &rarr;
               </Link>
             </p>
           </Card>
@@ -173,7 +270,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="px-6 py-4 border-t border-surface-border text-center text-xs text-slate-500">
-        PathFinder &bull; AI-Powered Personalized Learning Path Recommender
+        PathFinder &bull; AI-Powered Personalized Learning Path Recommender &bull; JanSahay / SIH26101
       </footer>
     </div>
   );

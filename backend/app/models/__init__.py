@@ -28,6 +28,8 @@ from backend.app.models.assessment import (
     AssessmentResponse,
 )
 
+from backend.app.models.preparation import PreparationHistoryRecord
+
 __all__ = [
     "User",
     "LearnerProfile",
@@ -67,4 +69,5 @@ __all__ = [
     "LearnerApplication",
     "ResumeAudit",
     "MockInterviewSession",
+    "PreparationHistoryRecord",
 ]

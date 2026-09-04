@@ -18,6 +18,29 @@ class LearnerProfile(Base):
     skill_confidence_map = Column(JSON, default=dict) # { "skill_slug": 0.75 }
     velocity_score = Column(Float, default=1.0)
     difficulty_tolerance = Column(Float, default=0.5) # 0.0 (Gentle) to 1.0 (Challenging)
+
+    # 🇮🇳 JanSahay / SIH26101 Indian Education Taxonomy attributes
+    country = Column(String(50), default="India")
+    education_stage = Column(String(100), nullable=True)
+    education_domain = Column(String(150), nullable=True)
+    education_stream = Column(String(150), nullable=True)
+    specialization = Column(String(150), nullable=True)
+    qualification = Column(String(150), nullable=True)
+    current_role = Column(String(100), nullable=True)
+    work_domain = Column(String(100), nullable=True)
+    institution = Column(String(200), nullable=True)
+    graduation_year = Column(String(20), nullable=True)
+    custom_education_label = Column(String(250), nullable=True)
+    education_profile = Column(JSON, nullable=True)
+
+    # Phase 9 Stage 1 Extended Education Attributes
+    board = Column(String(100), nullable=True)
+    subject_combination = Column(String(200), nullable=True)
+    institution_type = Column(String(100), nullable=True)
+    current_year = Column(String(50), nullable=True)
+    subjects = Column(JSON, nullable=True)
+    preferred_language = Column(String(50), default="English")
+
     state_hash = Column(String(64), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

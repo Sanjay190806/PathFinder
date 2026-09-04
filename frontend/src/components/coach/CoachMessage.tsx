@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ChevronRight, ExternalLink, Sparkles } from "lucide-react";
+import { ChevronRight, ExternalLink, Sparkles, CheckCircle2 } from "lucide-react";
 import { ChatMessage } from "@/lib/types";
 import { Badge } from "@/components/ui";
 
@@ -23,8 +23,42 @@ export function CoachMessage({ message, onActionClick }: CoachMessageProps) {
       >
         <p className="whitespace-pre-line">{message.text}</p>
 
-        {/* Grounding references */}
-        {message.grounding_references && message.grounding_references.length > 0 && (
+        {/* Web Citations & Grounding Sources */}
+        {message.sources && message.sources.length > 0 && (
+          <div className="mt-2.5 pt-2 border-t border-surface-border/60">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+              Verified Sources & Web Intel:
+            </span>
+            <div className="space-y-1">
+              {message.sources.map((src, idx) => (
+                <div key={idx} className="flex items-center justify-between text-[10px] bg-surface/80 rounded px-2 py-1 border border-surface-border">
+                  <div className="flex items-center gap-1.5 truncate">
+                    {src.type === "web" ? (
+                      <Sparkles className="h-3 w-3 text-accent-cyan shrink-0" />
+                    ) : (
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
+                    )}
+                    <span className="truncate text-slate-300 font-medium">{src.title}</span>
+                  </div>
+                  {src.url && (
+                    <a
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-400 hover:text-primary-300 ml-2 inline-flex items-center gap-0.5 shrink-0"
+                    >
+                      <span>Visit</span>
+                      <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Grounding references (prior format) */}
+        {(!message.sources || message.sources.length === 0) && message.grounding_references && message.grounding_references.length > 0 && (
           <div className="mt-2.5 pt-2 border-t border-surface-border/60">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
               Grounded in Curriculum:

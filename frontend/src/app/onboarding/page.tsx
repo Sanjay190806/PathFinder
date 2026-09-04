@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Compass, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import { Compass, ArrowRight, ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { api, setAuthToken, getAuthToken } from "@/lib/api";
 import { CareerRole, Skill, AssessmentQuestion, LearningPath } from "@/lib/types";
+import { SIH26101Profile } from "@/lib/indiaEducationTaxonomy";
+import { StructuredEducationSelection } from "@/lib/educationCatalog";
 import { Button, Card, Alert } from "@/components/ui";
 import { OnboardingProgress, StepInfo } from "@/components/onboarding/OnboardingProgress";
 import { CareerDestinationStep } from "@/components/onboarding/CareerDestinationStep";
@@ -43,9 +45,49 @@ export default function OnboardingPage() {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [customRole, setCustomRole] = useState<string>("");
 
-  const [educationLevel, setEducationLevel] = useState("Undergraduate");
-  const [fieldOfStudy, setFieldOfStudy] = useState("Computer Science");
+  const [educationLevel, setEducationLevel] = useState("Undergraduate (B.Tech)");
+  const [fieldOfStudy, setFieldOfStudy] = useState("Computer Science Engineering");
   const [experienceLevel, setExperienceLevel] = useState("Beginner");
+
+  // 🇮🇳 Hierarchical India Education Selection
+  const [educationSelection, setEducationSelection] = useState<StructuredEducationSelection>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pathfinder_education_selection");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
+    }
+    return {
+      education_level: "undergraduate",
+      stream: "engineering-technology",
+      specialization: "computer-science-engineering",
+      qualification: "B.Tech"
+    };
+  });
+
+  // 🇮🇳 JanSahay / SIH26101 Indian Education Taxonomy Profile
+  const [indianProfile, setIndianProfile] = useState<SIH26101Profile>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pathfinder_indian_stream_profile");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
+    }
+    return {
+      country: "India",
+      education_stage: "undergraduate",
+      domain: "computer_it",
+      stream: "cs_core",
+      specialization: "Artificial Intelligence & Machine Learning (AI/ML)",
+      qualification: "B.Tech CSE",
+      current_role: "Student / Fresher",
+      work_domain: "Artificial Intelligence & Machine Learning"
+    };
+  });
 
   const [selectedSkills, setSelectedSkills] = useState<Record<string, string>>({});
   const [weeklyHours, setWeeklyHours] = useState(10);
@@ -195,6 +237,21 @@ export default function OnboardingPage() {
         preferred_formats: preferredFormats,
         learning_objective: learningObjective,
         target_role: targetCareer,
+        country: "India",
+        education_stage: educationSelection.education_level,
+        education_domain: educationSelection.stream,
+        education_stream: educationSelection.specialization,
+        specialization: educationSelection.custom_education_label || educationSelection.specialization,
+        qualification: educationSelection.qualification,
+        institution: educationSelection.institution,
+        graduation_year: educationSelection.graduation_year,
+        custom_education_label: educationSelection.custom_education_label,
+        current_role: indianProfile.current_role,
+        work_domain: indianProfile.work_domain,
+        education_profile: {
+          ...indianProfile,
+          ...educationSelection
+        },
         skills: skillPayload
       });
 
@@ -207,6 +264,61 @@ export default function OnboardingPage() {
       setError(
         err.message || "Failed to finalize onboarding. Please check your network and try again."
       );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Check if learner already has a completed profile or goal, and redirect to dashboard immediately
+  useEffect(() => {
+    const token = getAuthToken();
+    if (token) {
+      api.getProfile().then((prof) => {
+        if (prof && prof.goals && prof.goals.length > 0) {
+          router.replace("/dashboard");
+        }
+      }).catch(() => {});
+    }
+  }, [router]);
+
+  const handleFastTrackDashboard = async () => {
+    setIsSubmitting(true);
+    try {
+      let token = getAuthToken();
+      if (!token) {
+        const demoRes = await api.demoLogin();
+        token = demoRes.access_token;
+        if (token) setAuthToken(token);
+      }
+      const targetCareer = customRole.trim() || selectedRole || "AI/ML Engineer";
+      await api.completeOnboarding({
+        education_level: educationSelection.qualification || "Undergraduate (B.Tech)",
+        field_of_study: educationSelection.specialization || "Computer Science",
+        experience_level: experienceLevel || "Beginner",
+        weekly_hours: weeklyHours || 10,
+        preferred_formats: preferredFormats || ["video", "hands-on", "projects"],
+        learning_objective: learningObjective || "Placement / Career Goal",
+        target_role: targetCareer,
+        skills: [],
+        country: "India",
+        education_stage: educationSelection.education_level,
+        education_domain: educationSelection.stream,
+        education_stream: educationSelection.specialization,
+        specialization: educationSelection.custom_education_label || educationSelection.specialization,
+        qualification: educationSelection.qualification,
+        institution: educationSelection.institution,
+        graduation_year: educationSelection.graduation_year,
+        custom_education_label: educationSelection.custom_education_label,
+        current_role: indianProfile.current_role || "Student / Fresher",
+        work_domain: indianProfile.work_domain || "Software & Technology",
+        education_profile: {
+          ...indianProfile,
+          ...educationSelection
+        }
+      }).catch(() => {});
+      router.push("/dashboard");
+    } catch {
+      router.push("/dashboard");
     } finally {
       setIsSubmitting(false);
     }
@@ -235,8 +347,8 @@ export default function OnboardingPage() {
         )}
 
         <div className="hidden sm:block">
-          <Link href="/login" className="text-xs font-semibold text-slate-400 hover:text-white transition-colors">
-            Exit
+          <Link href="/dashboard" className="text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+            Exit to Dashboard &rarr;
           </Link>
         </div>
       </header>
@@ -245,6 +357,25 @@ export default function OnboardingPage() {
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-2xl">
           <Card variant="default" className="p-6 sm:p-8 shadow-2xl">
+            {/* Quick Skip to Dashboard if details already filled */}
+            <div className="mb-5 p-3 rounded-xl border border-primary-500/30 bg-primary-950/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-slate-300">
+                <Sparkles className="h-4 w-4 text-accent-cyan shrink-0" />
+                <span>Already filled your details? Skip this setup and launch your personalized dashboard now.</span>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={handleFastTrackDashboard}
+                isLoading={isSubmitting}
+                className="shrink-0 text-xs py-1 px-3"
+                rightIcon={<ArrowRight className="h-3.5 w-3.5" />}
+              >
+                Go to Dashboard
+              </Button>
+            </div>
+
             {error && (
               <div className="mb-5">
                 <Alert variant="danger" message={error} onClose={() => setError(null)} />
@@ -272,6 +403,15 @@ export default function OnboardingPage() {
                 onChangeEducation={setEducationLevel}
                 onChangeField={setFieldOfStudy}
                 onChangeExperience={setExperienceLevel}
+                educationSelection={educationSelection}
+                onChangeEducationSelection={(sel) => {
+                  setEducationSelection(sel);
+                  if (typeof window !== "undefined") {
+                    localStorage.setItem("pathfinder_education_selection", JSON.stringify(sel));
+                  }
+                }}
+                indianProfile={indianProfile}
+                onChangeIndianProfile={setIndianProfile}
               />
             )}
 
@@ -319,7 +459,7 @@ export default function OnboardingPage() {
 
             {/* Bottom Navigation Buttons */}
             {step <= 5 && (
-              <div className="mt-8 pt-5 border-t border-surface-border flex items-center justify-between">
+              <div className="mt-8 pt-5 border-t border-surface-border flex items-center justify-between gap-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -329,6 +469,17 @@ export default function OnboardingPage() {
                   leftIcon={<ArrowLeft className="h-4 w-4" />}
                 >
                   Back
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFastTrackDashboard}
+                  isLoading={isSubmitting}
+                  className="text-xs text-slate-400 hover:text-white"
+                >
+                  Skip & Go to Dashboard &rarr;
                 </Button>
 
                 <Button

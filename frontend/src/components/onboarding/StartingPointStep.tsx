@@ -1,7 +1,9 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
-import { Input, Select } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { HierarchicalEducationSelector } from "@/components/education/HierarchicalEducationSelector";
+import { StructuredEducationSelection } from "@/lib/educationCatalog";
+import { SIH26101Profile } from "@/lib/indiaEducationTaxonomy";
 
 interface StartingPointStepProps {
   educationLevel: string;
@@ -10,6 +12,10 @@ interface StartingPointStepProps {
   onChangeEducation: (val: string) => void;
   onChangeField: (val: string) => void;
   onChangeExperience: (val: string) => void;
+  educationSelection?: StructuredEducationSelection;
+  onChangeEducationSelection?: (selection: StructuredEducationSelection) => void;
+  indianProfile?: SIH26101Profile;
+  onChangeIndianProfile?: (profile: SIH26101Profile) => void;
 }
 
 export function StartingPointStep({
@@ -18,7 +24,11 @@ export function StartingPointStep({
   experienceLevel,
   onChangeEducation,
   onChangeField,
-  onChangeExperience
+  onChangeExperience,
+  educationSelection,
+  onChangeEducationSelection,
+  indianProfile,
+  onChangeIndianProfile
 }: StartingPointStepProps) {
   const experienceOptions = [
     {
@@ -38,40 +48,60 @@ export function StartingPointStep({
     }
   ];
 
+  const handleEducationChange = (sel: StructuredEducationSelection) => {
+    if (onChangeEducationSelection) {
+      onChangeEducationSelection(sel);
+    }
+    // Backward compatibility updates:
+    const displayLevel = sel.education_level.replace(/-/g, " ");
+    const displayStream = sel.custom_education_label || sel.specialization || sel.stream;
+    onChangeEducation(`${displayLevel} (${sel.qualification || "Degree"})`);
+    onChangeField(displayStream);
+
+    if (onChangeIndianProfile) {
+      onChangeIndianProfile({
+        country: "India",
+        education_stage: sel.education_level,
+        domain: sel.stream,
+        stream: sel.specialization,
+        specialization: sel.custom_education_label || sel.specialization,
+        qualification: sel.qualification,
+        current_role: indianProfile?.current_role || "Student / Fresher",
+        work_domain: indianProfile?.work_domain || "Software & Technology"
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div>
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary-400">
-          <BookOpen className="h-4 w-4" /> Step 2: Background
+          <BookOpen className="h-4 w-4" /> Step 2: Background & Stream
         </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">
-          Where are you starting from?
+          Where are you starting from in India?
         </h2>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          This helps PathFinder calibrate prerequisite depth and avoid pacing mismatches.
+          India Education Taxonomy &bull; Cascading selection from Education Level &rarr; Broad Field &rarr; Specialization &rarr; Qualification.
         </p>
       </div>
 
       <div className="space-y-5">
-        <Select
-          label="Highest Education Level"
-          value={educationLevel}
-          onChange={(e) => onChangeEducation(e.target.value)}
-        >
-          <option value="High School">High School</option>
-          <option value="Undergraduate">Undergraduate (College / University)</option>
-          <option value="Postgraduate / Master">Postgraduate / Master</option>
-          <option value="Bootcamp / Self-Taught">Bootcamp / Self-Taught</option>
-          <option value="Working Professional">Working Professional</option>
-        </Select>
-
-        <Input
-          label="Field of Study / Major"
-          placeholder="e.g. Computer Science, Electrical Eng, Information Technology, Physics"
-          value={fieldOfStudy}
-          onChange={(e) => onChangeField(e.target.value)}
+        {/* Hierarchical India Education Selector */}
+        <HierarchicalEducationSelector
+          value={
+            educationSelection || {
+              education_level: indianProfile?.education_stage || "undergraduate",
+              stream: indianProfile?.domain || "engineering-technology",
+              specialization: indianProfile?.stream || "computer-science-engineering",
+              qualification: indianProfile?.qualification || "B.Tech"
+            }
+          }
+          onChange={handleEducationChange}
+          showInstitutionFields={true}
         />
 
+        {/* Technical Experience Level */}
         <div>
           <label className="block text-xs font-semibold text-slate-300 mb-2">
             Technical Exposure Level

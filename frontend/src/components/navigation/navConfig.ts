@@ -22,10 +22,40 @@ export const NAV_ITEMS: NavItemConfig[] = [
     description: "Dynamic curriculum and skill dependency graph"
   },
   {
+    label: "Planner",
+    href: "/planner",
+    iconName: "Calendar",
+    description: "Personalized tactical daily and weekly learning schedule"
+  },
+  {
     label: "Assessment",
     href: "/assessment",
     iconName: "CheckSquare",
     description: "Diagnostic skill calibration & confidence testing"
+  },
+  {
+    label: "Discovery",
+    href: "/career-discovery",
+    iconName: "Compass",
+    description: "Discover fitting career trajectories from your background"
+  },
+  {
+    label: "Resources",
+    href: "/resources",
+    iconName: "BookOpen",
+    description: "Verified learning resources with transparent pricing"
+  },
+  {
+    label: "Opportunities",
+    href: "/opportunities",
+    iconName: "Briefcase",
+    description: "Verified internships, jobs, and student competitions across India"
+  },
+  {
+    label: "Preparation",
+    href: "/preparation",
+    iconName: "GraduationCap",
+    description: "Career preparation intelligence, mock interviews, and ATS resume audit"
   },
   {
     label: "Analytics",

@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from backend.app.core.config import settings
@@ -29,7 +30,13 @@ from backend.app.api.v1 import (
     employability,
     opportunities,
     applications,
-    career_prep
+    career_prep,
+    education,
+    career_discovery,
+    pathways,
+    market_intelligence,
+    planner,
+    preparation
 )
 
 @asynccontextmanager
@@ -59,6 +66,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=getattr(exc, "headers", None)
+        )
+    logger.error(f"Unhandled server exception on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please contact PathFinder support."}
+    )
+
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(profile.router, prefix=settings.API_V1_STR)
 app.include_router(skills.router, prefix=settings.API_V1_STR)
@@ -83,6 +104,12 @@ app.include_router(employability.router, prefix=settings.API_V1_STR)
 app.include_router(opportunities.router, prefix=settings.API_V1_STR)
 app.include_router(applications.router, prefix=settings.API_V1_STR)
 app.include_router(career_prep.router, prefix=settings.API_V1_STR)
+app.include_router(education.router, prefix=settings.API_V1_STR)
+app.include_router(career_discovery.router, prefix=settings.API_V1_STR)
+app.include_router(pathways.router, prefix=settings.API_V1_STR)
+app.include_router(market_intelligence.router, prefix=settings.API_V1_STR)
+app.include_router(planner.router, prefix=settings.API_V1_STR)
+app.include_router(preparation.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

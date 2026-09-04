@@ -2,9 +2,11 @@ import re
 from typing import Tuple, List
 
 INJECTION_PATTERNS = [
-    r"ignore (all )?(the )?(previous )?(rules|instructions)",
-    r"disregard (all )?(the )?(prior|previous )?(rules|instructions)",
-    r"reveal (the |all )?(system|hidden) (prompt|instructions)",
+    r"ignore (all )?(the )?(previous |system )?(rules|instructions)",
+    r"disregard (all )?(the )?(prior|previous |system )?(rules|instructions)",
+    r"reveal (the |all |your )*(hidden |system )*(prompt|instructions)",
+    r"system override",
+    r"leak (all )?(the )?(interview|system|hidden) (questions|prompts|instructions|data)",
     r"print (the |all )?(system|hidden) (prompt|instructions)",
     r"show (me )?(the |all )?(system|hidden) (prompt|instructions)",
     r"tell me (your |the )?(hidden |system )?(prompt|instructions)",
@@ -20,7 +22,10 @@ INJECTION_PATTERNS = [
     r"delete from users",
     r"select \* from users",
     r"override (system|security) rules",
-    r"bypass (safety|guidelines)"
+    r"bypass (safety|guidelines)",
+    r"dan mode|jailbreak|unrestricted mode",
+    r"dump (the |all |entire )*(database|users|tables|credentials|salaries)",
+    r"you are now unrestricted|pretend you have no rules"
 ]
 
 class PromptGuard:
@@ -64,3 +69,17 @@ class PromptGuard:
             "Respond as the PathFinder Coach following all system rules."
         ]
         return "\n\n".join(parts)
+
+    @classmethod
+    def validate_external_content(cls, content: str) -> str:
+        """
+        Sanitizes and neutralizes potential prompt injections or instruction escapes
+        found in external web pages or search snippets.
+        """
+        if not content:
+            return ""
+        clean = content.replace("<script", "").replace("</script>", "")
+        clean = clean.replace("</user_query>", "").replace("</grounded_context>", "")
+        for pattern in INJECTION_PATTERNS:
+            clean = re.sub(pattern, "[DEFUSED_PROMPT_INJECTION]", clean, flags=re.IGNORECASE)
+        return clean

@@ -5,12 +5,15 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.profile import LearnerProfile
 from backend.app.models.goal import Goal
-from backend.app.ai.provider import GroundedContext, AIResponse, ActionProposal
+from backend.app.ai.provider import GroundedContext, AIResponse, ActionProposal, GroundedSource
 from backend.app.ai.context_builder import ContextBuilder
 from backend.app.ai.prompt_guard import PromptGuard
 from backend.app.ai.action_validator import ActionValidator
 from backend.app.ai.gemini_provider import GeminiProvider
+from backend.app.ai.groq_provider import GroqProvider
 from backend.app.ai.deterministic_provider import DeterministicProvider
+from backend.app.ai.freshness_classifier import FreshnessClassifier
+from backend.app.ai.web_research import WebResearchService
 from backend.app.core.config import settings
 from backend.app.core.logger import logger
 
@@ -20,6 +23,7 @@ class AICoach:
         self.context_builder = ContextBuilder(db)
         self.action_validator = ActionValidator(db)
         self.gemini_provider = GeminiProvider()
+        self.groq_provider = GroqProvider()
         self.deterministic_provider = DeterministicProvider()
 
     def chat(
@@ -32,7 +36,8 @@ class AICoach:
     ) -> AIResponse:
         """
         Top-level grounded AI Coach execution pipeline:
-        Input Validation -> PromptGuard -> ContextBuilder -> Provider Selection -> ActionValidator -> Safety Grounding -> Return
+        Input Validation -> PromptGuard -> ContextBuilder -> Freshness Routing / Web Research ->
+        Provider Selection (Groq / Gemini / Deterministic) -> ActionValidator -> Safety Grounding -> Return
         """
         corr_id = correlation_id or str(uuid.uuid4())
         t0 = time.time()
@@ -63,20 +68,52 @@ class AICoach:
             conversation_history=conversation_history
         )
 
-        # 3. Provider Selection
+        # 3. Freshness Routing & Web Research (Stage 8)
+        freshness, _, _ = FreshnessClassifier.classify(query)
+        if freshness == "FRESH":
+            logger.info(f"AI_FRESHNESS_TRIGGERED [corr_id={corr_id}] query='{query[:50]}' -> performing web research")
+            web_results = WebResearchService.search(query)
+            if web_results:
+                for wr in web_results:
+                    context.web_citations.append(GroundedSource(
+                        type="web",
+                        title=wr.title,
+                        url=wr.url,
+                        source_provider=wr.provider,
+                        retrieval_date=wr.retrieval_date,
+                        verification_status=wr.verification_status
+                    ))
+
+        # 4. Provider Selection
         configured_provider = getattr(settings, "AI_PROVIDER", "gemini").lower()
-        if configured_provider == "deterministic":
+        if configured_provider == "groq":
+            provider = self.groq_provider
+            logger.info(f"AI_PROVIDER_SELECTED [corr_id={corr_id}] provider=groq")
+        elif configured_provider == "deterministic":
             provider = self.deterministic_provider
             logger.info(f"AI_PROVIDER_SELECTED [corr_id={corr_id}] provider=deterministic")
         else:
             provider = self.gemini_provider
             logger.info(f"AI_PROVIDER_SELECTED [corr_id={corr_id}] provider=gemini")
 
-        # 4. Generate Response
-        raw_response = provider.generate_coach_response(context)
+        # 5. Generate Response with Zero-Downtime Fallback
+        try:
+            raw_response = provider.generate_coach_response(context)
+        except Exception as ex:
+            logger.warning(f"AI provider {configured_provider} raised exception: {ex}. Falling back cleanly to deterministic.")
+            raw_response = self.deterministic_provider.generate_coach_response(context)
+            raw_response.is_fallback = True
+
         raw_response.correlation_id = corr_id
 
-        # 5. Validate Action Proposals
+        # Attach web citations to response sources if not already present
+        if context.web_citations:
+            existing_urls = {s.url for s in raw_response.sources if s.url}
+            for wc in context.web_citations:
+                if wc.url not in existing_urls:
+                    raw_response.sources.append(wc)
+
+        # 6. Validate Action Proposals
         if raw_response.suggested_actions:
             validated_actions = self.action_validator.validate_actions(
                 proposals=raw_response.suggested_actions,

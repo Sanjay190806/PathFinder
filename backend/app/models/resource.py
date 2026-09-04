@@ -24,6 +24,23 @@ class LearningResource(Base):
     career_relevance = Column(JSON, default=list)  # ["ai-ml-engineer", "data-scientist"]
     format = Column(String(50), default="video")  # video, hands-on, project, theory, interactive, article
     status = Column(String(50), default="active")  # active, archived, draft
+
+    # Phase 9 Stage 5 & 6 Extended Discovery & Verification Attributes
+    language = Column(String(50), default="English")  # English, Hindi, Tamil, Telugu, Kannada, etc.
+    price_type = Column(String(50), default="GENUINELY_FREE")  # GENUINELY_FREE, FREE_TO_ENROLL_PAID_CERTIFICATE, YOUTUBE_FREE_CONTENT, PAID, SUBSCRIPTION_REQUIRED, UNKNOWN
+    learning_cost = Column(Float, default=0.0)
+    certificate_cost = Column(String(50), default="free")  # free, paid, optional_paid, not_applicable
+    subscription_required = Column(Boolean, default=False)
+    free_learning = Column(Boolean, default=True)
+    free_certificate = Column(Boolean, default=False)
+    verification_status = Column(String(50), default="VERIFIED")  # VERIFIED, PARTIALLY_VERIFIED, UNVERIFIED, UNAVAILABLE, EXPIRED, PRICE_UNKNOWN, LINK_UNKNOWN, STALE
+    verification_method = Column(String(50), default="curated_catalog")
+    last_verified_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    canonical_url = Column(String(500), nullable=True)
+    source = Column(String(100), default="curated_catalog")
+    source_tier = Column(Integer, default=1)  # 1=Gov/Institutional, 2=Tech Provider, 3=EdTech, 4=YouTube
+    external_id = Column(String(100), nullable=True)
+
     embedding = Column(JSON, nullable=True)  # Serialized float vector
     embedding_model = Column(String(100), default="text-embedding-004")
     embedding_model_version = Column(String(50), default="v1.0")

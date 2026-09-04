@@ -132,7 +132,24 @@ class ContextBuilder:
         market_service = MarketIntelligenceService()
         market_res = market_service.get_market_signals(role=goal.target_role)
 
-        # 7. Bounded Conversation History
+        # 7. Planner Context (Today & Weekly Matrix)
+        today_plan = None
+        weekly_plan = None
+        try:
+            from backend.app.models.planner import LearnerPlan
+            plan = (
+                self.db.query(LearnerPlan)
+                .filter(LearnerPlan.user_id == profile.user_id, LearnerPlan.status == "active")
+                .order_by(LearnerPlan.version.desc())
+                .first()
+            )
+            if plan and plan.plan_data:
+                today_plan = plan.plan_data.get("today", {}).get("items", [])
+                weekly_plan = plan.plan_data.get("week", {})
+        except Exception:
+            pass
+
+        # 8. Bounded Conversation History
         history = (conversation_history or [])[-AI_MAX_HISTORY_MESSAGES:]
 
         return GroundedContext(
@@ -157,5 +174,13 @@ class ContextBuilder:
             readiness_level=readiness_data["readiness_level"],
             critical_blockers=readiness_data["critical_blockers"],
             decay_alerts=decay_alerts,
-            market_signals=market_res["signals"][:4]
+            market_signals=market_res["signals"][:4],
+            preferred_language=profile.preferred_language or "English",
+            education_level=profile.education_level,
+            education_stage=profile.education_stage,
+            stream=profile.education_stream,
+            specialization=profile.specialization,
+            qualification=profile.qualification,
+            today_plan=today_plan,
+            weekly_plan=weekly_plan
         )

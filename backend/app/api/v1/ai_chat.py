@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List
 import uuid
 
 from backend.app.database import get_db
@@ -7,10 +8,39 @@ from backend.app.api.v1.auth import get_current_user
 from backend.app.models.user import User
 from backend.app.models.learning_path import LearningPath, LearningPathVersion
 from backend.app.models.progress import Progress
-from backend.app.schemas.ai import ChatRequest, ChatResponse, ActionSuggestion, GroundedSourceOut, CoachContextOut
+from backend.app.schemas.ai import (
+    ChatRequest, ChatResponse, ActionSuggestion, GroundedSourceOut, CoachContextOut,
+    LanguageOut, CapabilitiesOut
+)
 from backend.app.ai.coach import AICoach
+from backend.app.ai.config import SUPPORTED_LANGUAGES
+from backend.app.core.config import settings
 
 router = APIRouter(prefix="/ai", tags=["AI Coach & Grounded Assistant"])
+
+@router.get("/languages", response_model=List[LanguageOut])
+def get_supported_languages():
+    """Returns list of supported Indian regional languages for the AI Coach."""
+    return [
+        LanguageOut(code=lang["code"], name=lang["name"], native_name=lang["native_name"])
+        for lang in SUPPORTED_LANGUAGES.values()
+    ]
+
+@router.get("/capabilities", response_model=CapabilitiesOut)
+def get_ai_capabilities():
+    """Returns configured AI provider, model, and active features."""
+    provider = getattr(settings, "AI_PROVIDER", "groq")
+    model = settings.GROQ_MODEL if provider == "groq" else settings.GEMINI_MODEL
+    return CapabilitiesOut(
+        provider=provider,
+        configured_model=model,
+        web_search_available=True,
+        freshness_routing_enabled=True,
+        supported_languages=[
+            LanguageOut(code=lang["code"], name=lang["name"], native_name=lang["native_name"])
+            for lang in SUPPORTED_LANGUAGES.values()
+        ]
+    )
 
 @router.get("/context", response_model=CoachContextOut)
 def get_coach_context(
@@ -59,7 +89,8 @@ def get_coach_context(
         strengths=strengths[:4],
         completed_count=completed_count,
         next_step_title=next_step_title,
-        next_step_id=next_step_id
+        next_step_id=next_step_id,
+        preferred_language=profile.preferred_language or "English"
     )
 
 @router.post("/chat", response_model=ChatResponse)
@@ -75,6 +106,10 @@ def assistant_chat(
     primary_goal = next((g for g in profile.goals if g.is_primary), profile.goals[0] if profile.goals else None)
     if not primary_goal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No primary learning goal set for learner")
+
+    # If message specified an override preferred language, apply temporarily
+    if payload.preferred_language:
+        profile.preferred_language = payload.preferred_language
 
     coach = AICoach(db)
     res = coach.chat(
@@ -95,7 +130,15 @@ def assistant_chat(
             ))
 
     sources_out = [
-        GroundedSourceOut(type=s.type, id=s.id, title=s.title)
+        GroundedSourceOut(
+            type=s.type,
+            id=s.id,
+            title=s.title,
+            url=s.url,
+            source_provider=s.source_provider,
+            retrieval_date=s.retrieval_date,
+            verification_status=s.verification_status
+        )
         for s in res.sources
     ]
 

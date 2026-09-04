@@ -15,6 +15,16 @@ class OpportunityOut(BaseModel):
     salary_range: str
     description: str
     opportunity_type: str
+    country: Optional[str] = "India"
+    state: Optional[str] = None
+    city: Optional[str] = None
+    min_education_stage: Optional[str] = "Undergraduate"
+    eligible_streams: List[str] = []
+    application_url: Optional[str] = None
+    source: Optional[str] = "JanSahay Verified Portal"
+    provider: Optional[str] = "Direct Employer"
+    verification_status: Optional[str] = "VERIFIED"
+    freshness: Optional[str] = "FRESH"
 
 class OpportunityMatchOut(BaseModel):
     opportunity: OpportunityOut
@@ -23,3 +33,15 @@ class OpportunityMatchOut(BaseModel):
     factor_breakdown: Dict[str, float] = {}
     missing_skills: List[str] = []
     match_reasons: List[str] = []
+    blockers: List[str] = []
+
+class OpportunityApplyRequest(BaseModel):
+    cover_note: Optional[str] = None
+    portfolio_url: Optional[str] = None
+
+class OpportunityApplyResponse(BaseModel):
+    application_id: str
+    opportunity_id: str
+    status: str
+    message: str
+    handoff_url: Optional[str] = None

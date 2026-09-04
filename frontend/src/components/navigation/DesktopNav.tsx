@@ -1,14 +1,20 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Route, CheckSquare, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Route, CheckSquare, BarChart3, Compass, BookOpen, Calendar, Briefcase, GraduationCap } from "lucide-react";
 import { NAV_ITEMS } from "./navConfig";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, React.ReactNode> = {
   LayoutDashboard: <LayoutDashboard className="h-3.5 w-3.5" />,
   Route: <Route className="h-3.5 w-3.5" />,
+  Calendar: <Calendar className="h-3.5 w-3.5" />,
   CheckSquare: <CheckSquare className="h-3.5 w-3.5" />,
+  Compass: <Compass className="h-3.5 w-3.5" />,
+  Resources: <BookOpen className="h-3.5 w-3.5" />,
+  BookOpen: <BookOpen className="h-3.5 w-3.5" />,
+  Briefcase: <Briefcase className="h-3.5 w-3.5" />,
+  GraduationCap: <GraduationCap className="h-3.5 w-3.5" />,
   BarChart3: <BarChart3 className="h-3.5 w-3.5" />
 };
 

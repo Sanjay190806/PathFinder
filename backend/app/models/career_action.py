@@ -42,6 +42,8 @@ class MockInterviewSession(Base):
     profile_id = Column(String(36), ForeignKey("learner_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
     target_role = Column(String(100), nullable=False)
     interview_type = Column(String(50), default="Technical Core")  # Technical Core, System Design, Scenario Defense
+    opportunity_id = Column(String(36), nullable=True)
+    status = Column(String(50), default="in_progress")  # in_progress, completed, abandoned
     question_transcript = Column(JSON, default=list)  # [{"q": "...", "a": "...", "score": 0.85, "rubric": "..."}]
     overall_score = Column(Float, default=0.0)  # [0.0, 100.0]
     feedback = Column(String(1000), default="")

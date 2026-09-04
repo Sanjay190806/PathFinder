@@ -11,7 +11,11 @@ import {
   LogOut,
   Target,
   X,
-  Compass
+  Compass,
+  BookOpen,
+  Calendar,
+  Briefcase,
+  GraduationCap
 } from "lucide-react";
 import { NAV_ITEMS } from "./navConfig";
 import { removeAuthToken } from "@/lib/api";
@@ -20,7 +24,13 @@ import { cn } from "@/lib/utils";
 const iconMap: Record<string, React.ReactNode> = {
   LayoutDashboard: <LayoutDashboard className="h-4 w-4" />,
   Route: <Route className="h-4 w-4" />,
+  Calendar: <Calendar className="h-4 w-4" />,
   CheckSquare: <CheckSquare className="h-4 w-4" />,
+  Compass: <Compass className="h-4 w-4" />,
+  BookOpen: <BookOpen className="h-4 w-4" />,
+  Resources: <BookOpen className="h-4 w-4" />,
+  Briefcase: <Briefcase className="h-4 w-4" />,
+  GraduationCap: <GraduationCap className="h-4 w-4" />,
   BarChart3: <BarChart3 className="h-4 w-4" />
 };
 

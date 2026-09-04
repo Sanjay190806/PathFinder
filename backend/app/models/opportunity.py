@@ -15,12 +15,26 @@ class Opportunity(Base):
     role_category = Column(String(100), nullable=False, index=True)  # AI/ML Engineer, Cybersecurity, Data Scientist, etc.
     required_skills = Column(JSON, default=list)  # ["python", "pytorch", "docker"]
     preferred_skills = Column(JSON, default=list)  # ["transformers", "mlops"]
-    min_experience_level = Column(String(50), default="Entry Level")  # Entry Level, Mid, Senior
+    min_experience_level = Column(String(50), default="Entry Level")  # Entry Level, Mid, Senior, Internship
     location_type = Column(String(50), default="Remote")  # Remote, Hybrid, Onsite
-    salary_range = Column(String(50), default="$110k - $145k")
+    salary_range = Column(String(50), default="₹6 LPA - ₹12 LPA")
     description = Column(String(1000), nullable=False)
-    opportunity_type = Column(String(50), default="Job")  # Job, Internship, Open Source, Fellowship
+    opportunity_type = Column(String(50), default="Job")  # Job, Internship, Open Source, Fellowship, Competition, Apprenticeship
     is_active = Column(Boolean, default=True)
+
+    # Phase 9 Stage 9 Extended Opportunity Attributes
+    country = Column(String(50), default="India")
+    state = Column(String(100), nullable=True)
+    city = Column(String(100), nullable=True)
+    min_education_stage = Column(String(100), default="Undergraduate") # School, Higher Secondary, Undergraduate, Postgraduate
+    eligible_streams = Column(JSON, default=list) # ["Computer Science", "ECE", "Commerce", "Any"]
+    application_url = Column(String(500), nullable=True)
+    source = Column(String(100), default="JanSahay Verified Portal")
+    provider = Column(String(100), default="Direct Employer")
+    retrieved_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = Column(DateTime, nullable=True)
+    verification_status = Column(String(50), default="VERIFIED") # VERIFIED, PARTIALLY_VERIFIED, UNVERIFIED, UNAVAILABLE, EXPIRED
+    freshness = Column(String(50), default="FRESH") # FRESH, RECENT, AGING, STALE, EXPIRED
 
 class LearnerOpportunityMatch(Base):
     __tablename__ = "learner_opportunity_matches"

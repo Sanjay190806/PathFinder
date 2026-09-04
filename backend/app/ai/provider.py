@@ -11,9 +11,13 @@ class ActionProposal(BaseModel):
     payload: Optional[Dict[str, Any]] = None
 
 class GroundedSource(BaseModel):
-    type: str = Field(..., description="resource, skill, roadmap, or prerequisite")
+    type: str = Field(..., description="resource, skill, roadmap, prerequisite, or web")
     id: Optional[str] = None
     title: str
+    url: Optional[str] = None
+    source_provider: Optional[str] = None
+    retrieval_date: Optional[str] = None
+    verification_status: Optional[str] = None
 
 class GroundedContext(BaseModel):
     learner_id: str
@@ -39,6 +43,18 @@ class GroundedContext(BaseModel):
     critical_blockers: List[str] = []
     decay_alerts: List[str] = []
     market_signals: List[Dict[str, Any]] = []
+    # Phase 9 Stage 8 Multilingual & Grounding Fields
+    preferred_language: str = "English"
+    education_level: Optional[str] = None
+    education_stage: Optional[str] = None
+    stream: Optional[str] = None
+    specialization: Optional[str] = None
+    qualification: Optional[str] = None
+    today_plan: Optional[List[Dict[str, Any]]] = None
+    weekly_plan: Optional[Dict[str, Any]] = None
+    web_citations: List[GroundedSource] = []
+    current_data_verified: bool = True
+    price_preference: Optional[str] = None
 
 class AIResponse(BaseModel):
     message: str
@@ -67,6 +83,11 @@ class AssistantContext(BaseModel):
     learner_name: str
     target_role: str
     education_level: Optional[str] = None
+    education_stage: Optional[str] = None
+    education_stream: Optional[str] = None
+    specialization: Optional[str] = None
+    qualification: Optional[str] = None
+    current_role: Optional[str] = None
     weekly_hours: int
     skills_known: List[str]
     skill_gaps: List[str]

@@ -57,3 +57,11 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Large Media & Archives
+*.mp4
+*.zip
+*.docx
+*.pdf
+report_assets/
+prompt_*.txt
