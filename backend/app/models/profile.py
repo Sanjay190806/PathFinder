@@ -40,6 +40,7 @@ class LearnerProfile(Base):
     current_year = Column(String(50), nullable=True)
     subjects = Column(JSON, nullable=True)
     preferred_language = Column(String(50), default="English")
+    fallback_language = Column(String(50), default="English")
 
     state_hash = Column(String(64), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

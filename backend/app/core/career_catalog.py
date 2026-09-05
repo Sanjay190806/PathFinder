@@ -98,3 +98,24 @@ def resolve_target_skills_for_role(role_name_or_slug: str) -> Optional[List[str]
 def register_custom_career_role(role_def: CareerRoleDefinition) -> None:
     """Allows dynamic or test-time registration of new career domains."""
     CAREER_ROLES_CATALOG[role_def.slug] = role_def
+
+def _populate_expanded_roles() -> None:
+    """Populates multi-domain canonical careers into in-memory catalog for backward compatibility."""
+    try:
+        from backend.app.seed.career_seed import CANONICAL_CAREERS
+        for c in CANONICAL_CAREERS:
+            slug = c["slug"]
+            if slug not in CAREER_ROLES_CATALOG:
+                domain_cat = c.get("domain_slug", "General").replace("-", " ").title()
+                CAREER_ROLES_CATALOG[slug] = CareerRoleDefinition(
+                    role=c["canonical_name"],
+                    slug=slug,
+                    title=f"Become a {c['canonical_name']}",
+                    description=c["short_description"],
+                    domain_category=domain_cat,
+                    target_skills=list(c.get("mandatory_skills", [])) + list(c.get("recommended_skills", []))
+                )
+    except Exception:
+        pass
+
+_populate_expanded_roles()

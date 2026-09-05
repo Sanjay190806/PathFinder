@@ -69,6 +69,23 @@ def get_current_user(
     return user
 
 
+def get_optional_current_user(
+    request: Request,
+    token_header: Optional[str] = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    token = token_header or request.cookies.get(_COOKIE_NAME)
+    if not token:
+        return None
+    try:
+        user_id = decode_access_token(token)
+        if not user_id:
+            return None
+        return db.query(User).filter(User.id == user_id).first()
+    except Exception:
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Register — 5 attempts per minute per IP
 # ---------------------------------------------------------------------------

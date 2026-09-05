@@ -333,8 +333,79 @@ CAREER_REQUIREMENTS_REGISTRY: Dict[str, CareerRequirements] = {
 def get_career_requirements(career_slug: str) -> Optional[CareerRequirements]:
     """Retrieves authoritative requirements and pathways for a career slug."""
     cleaned = (career_slug or "").strip().lower()
-    return CAREER_REQUIREMENTS_REGISTRY.get(cleaned)
+    if cleaned in CAREER_REQUIREMENTS_REGISTRY:
+        return CAREER_REQUIREMENTS_REGISTRY[cleaned]
+
+    # Resolve from canonical careers catalog if available
+    try:
+        from backend.app.seed.career_seed import CANONICAL_CAREERS
+        for c in CANONICAL_CAREERS:
+            if c["slug"] == cleaned:
+                # Build pathways
+                direct_path = CareerPathway(
+                    pathway_id=f"{cleaned}-standard-path",
+                    pathway_type=PathwayType.DIRECT_PATH,
+                    title=f"Standard {c['canonical_name']} Pathway",
+                    description=c["short_description"],
+                    applicable_backgrounds=["higher-secondary", "undergraduate", "diploma-polytechnic", "other"],
+                    duration_estimate="6-12 months",
+                    difficulty_level="Moderate",
+                    is_primary=True,
+                    milestones=[
+                        PathwayMilestone(
+                            step_number=1,
+                            title="Foundational Competencies",
+                            description=f"Acquire foundational mastery in core skills: {', '.join(c.get('mandatory_skills', []))}",
+                            milestone_type="foundational_skill",
+                            skills_to_acquire=list(c.get("mandatory_skills", []))[:2],
+                            estimated_weeks=6
+                        ),
+                        PathwayMilestone(
+                            step_number=2,
+                            title="Applied Professional Practice",
+                            description=f"Build hands-on case studies using standard tools: {', '.join(c.get('tools', []))}",
+                            milestone_type="core_competency",
+                            skills_to_acquire=list(c.get("mandatory_skills", []))[2:],
+                            estimated_weeks=8
+                        )
+                    ]
+                )
+
+                pref_streams = []
+                subj_prereqs = []
+                accepted_levels = ["higher-secondary", "undergraduate", "postgraduate", "diploma-polytechnic", "iti-industrial-training", "other"]
+                for er in c.get("education_requirements", []):
+                    pref_streams.extend(er.get("preferred_streams", []))
+                    subj_prereqs.extend(er.get("subject_prerequisites", []))
+
+                req = CareerRequirements(
+                    career_slug=c["slug"],
+                    career_role=c["canonical_name"],
+                    domain_category=c.get("domain_slug", "General").replace("-", " ").title(),
+                    mandatory_skills=list(c.get("mandatory_skills", [])),
+                    recommended_skills=list(c.get("recommended_skills", [])),
+                    helpful_skills=[],
+                    accepted_education_levels=accepted_levels,
+                    preferred_streams=pref_streams or ["any"],
+                    subject_prerequisites=subj_prereqs,
+                    bridge_prerequisites=[f"{s.replace('-', ' ').title()} Bridge" for s in c.get("mandatory_skills", [])[:2]],
+                    pathways=[direct_path]
+                )
+                CAREER_REQUIREMENTS_REGISTRY[cleaned] = req
+                return req
+    except Exception:
+        pass
+
+    return None
 
 def get_all_registered_career_requirements() -> List[CareerRequirements]:
     """Returns requirements for all registered careers."""
+    # Ensure all canonical careers are registered
+    try:
+        from backend.app.seed.career_seed import CANONICAL_CAREERS
+        for c in CANONICAL_CAREERS:
+            if c["slug"] not in CAREER_REQUIREMENTS_REGISTRY:
+                get_career_requirements(c["slug"])
+    except Exception:
+        pass
     return list(CAREER_REQUIREMENTS_REGISTRY.values())

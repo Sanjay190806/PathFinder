@@ -25,7 +25,7 @@ def get_assessments(db: Session = Depends(get_db)):
                 skill_id=q.skill_id,
                 skill_name=q.skill.name if q.skill else "General",
                 question_text=q.question_text,
-                options=q.options
+                options=q.options or []
             )
             for q in a.questions
         ]

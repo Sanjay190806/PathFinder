@@ -6,7 +6,7 @@ class AssessmentQuestionOut(BaseModel):
     skill_id: Optional[str] = "general-skill"
     skill_name: Optional[str] = "General"
     question_text: str
-    options: List[str]
+    options: Optional[List[str]] = []
 
 class AssessmentOut(BaseModel):
     id: str

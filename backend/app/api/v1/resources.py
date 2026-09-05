@@ -10,7 +10,10 @@ from backend.app.models.user import User
 from backend.app.schemas.resource import ResourceOut, ResourceDetailOut, ResourceDiscoveryOut, ResourceVerificationResponse
 from backend.app.resources.resource_discovery_engine import ResourceDiscoveryEngine
 from backend.app.resources.resource_verifier import ResourceVerifier
+from backend.app.resources.course_intelligence_service import CourseIntelligenceService
+from backend.app.resources.youtube_practice_service import YouTubePracticeService
 from backend.app.core.resource_catalog_extended import EXTENDED_RESOURCES_REGISTRY
+
 
 router = APIRouter(prefix="/resources", tags=["Learning Resources"])
 
@@ -72,6 +75,44 @@ def get_personalized_resource_recommendations(
         price_filter=price,
         learner_profile=current_user.profile
     )
+
+@router.get("/courses")
+def search_courses(
+    q: Optional[str] = Query(None, description="Text search across title, description, and provider"),
+    dsa_topic: Optional[str] = Query(None, description="Filter by DSA topic slug"),
+    skill: Optional[str] = Query(None, description="Filter by skill slug"),
+    career: Optional[str] = Query(None, description="Filter by career slug"),
+    role: Optional[str] = Query(None, description="Filter by role slug"),
+    price: Optional[str] = Query(None, description="Price filter"),
+    language: Optional[str] = Query(None, description="Filter by language"),
+    difficulty: Optional[str] = Query(None, description="Filter by difficulty"),
+    free_only: bool = Query(False, description="Filter to free learning resources only"),
+    limit: int = Query(50, ge=1, le=100),
+    skip: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    """Searches verified courses and learning resources with pricing classification and quality ranking."""
+    service = CourseIntelligenceService(db)
+    return service.search_courses(
+        query=q,
+        dsa_topic=dsa_topic,
+        skill=skill,
+        career_slug=career,
+        role_slug=role,
+        price_filter=price,
+        language=language,
+        difficulty=difficulty,
+        free_only=free_only,
+        limit=limit,
+        skip=skip,
+    )
+
+
+@router.get("/pricing-categories")
+def get_pricing_categories():
+    """Returns canonical pricing classification types and definitions."""
+    return CourseIntelligenceService.get_price_categories()
+
 
 @router.get("/{resource_id}", response_model=ResourceDetailOut)
 def get_resource(
@@ -160,4 +201,51 @@ def verify_learning_resource(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Resource '{resource_id}' not found for verification."
     )
+
+
+@router.get("/by-dsa/{topic_slug}")
+def get_courses_by_dsa_topic(
+    topic_slug: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieves verified learning resources covering a specific DSA topic."""
+    service = CourseIntelligenceService(db)
+    return service.get_courses_by_dsa_topic(topic_slug)
+
+
+@router.get("/by-company-role/{company_slug}/{role_slug}")
+def get_courses_by_company_role(
+    company_slug: str,
+    role_slug: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieves verified learning resources aligned with specific company role requirements."""
+    service = CourseIntelligenceService(db)
+    return service.get_courses_by_role(company_slug, role_slug)
+
+
+@router.get("/youtube/by-topic/{topic_slug}")
+def get_youtube_resources_by_topic(
+    topic_slug: str,
+    difficulty: Optional[str] = Query(None, description="Filter by difficulty"),
+    language: Optional[str] = Query(None, description="Filter by language"),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """Retrieves verified YouTube educational playlists and video series covering a DSA topic."""
+    return YouTubePracticeService.search_youtube_resources(
+        topic_slug=topic_slug, difficulty=difficulty, language=language, limit=limit
+    )
+
+
+@router.get("/practice/by-topic/{topic_slug}")
+def get_practice_problems_by_topic(
+    topic_slug: str,
+    difficulty: Optional[str] = Query(None, description="Filter by EASY, MEDIUM, or HARD"),
+):
+    """Retrieves structured Easy/Medium/Hard practice problem sets for a canonical DSA topic."""
+    return YouTubePracticeService.get_practice_problems(
+        topic_slug=topic_slug, difficulty=difficulty
+    )
+
+
 

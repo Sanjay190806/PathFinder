@@ -43,6 +43,39 @@ from backend.app.models.syllabus import (
     SyllabusTopicSkill,
     LearnerCourseProgress,
 )
+from backend.app.models.career import (
+    CareerDomain,
+    CareerFamily,
+    Career,
+    CareerSpecialization,
+    CareerRelationship,
+    CareerSkillRequirement,
+    CareerEducationRequirement,
+    CareerRegionalMetadata,
+    CareerRequirement,
+    CareerPathwayDefinition,
+    PathwayStepDefinition,
+    CareerMarketSignal,
+    CareerTranslation,
+)
+from backend.app.models.company import Company, CompanyRole
+from backend.app.models.company_requirements import (
+    RoleSkillRequirement,
+    RoleDSARequirement,
+    RoleTechnologyRequirement,
+    RoleInterviewTopic,
+)
+from backend.app.models.dsa import (
+    DSADomain,
+    DSATopic,
+    DSASubtopic,
+    DSAConcept,
+)
+
+from backend.app.models.dynamic_update import (
+    DataChangeEvent,
+    DynamicJobRecord,
+)
 
 __all__ = [
     "User",
@@ -96,4 +129,29 @@ __all__ = [
     "LearningObjective",
     "SyllabusTopicSkill",
     "LearnerCourseProgress",
+    "CareerDomain",
+    "CareerFamily",
+    "Career",
+    "CareerSpecialization",
+    "CareerRelationship",
+    "CareerSkillRequirement",
+    "CareerEducationRequirement",
+    "CareerRegionalMetadata",
+    "CareerRequirement",
+    "CareerPathwayDefinition",
+    "PathwayStepDefinition",
+    "CareerMarketSignal",
+    "CareerTranslation",
+    "Company",
+    "CompanyRole",
+    "RoleSkillRequirement",
+    "RoleDSARequirement",
+    "RoleTechnologyRequirement",
+    "RoleInterviewTopic",
+    "DSADomain",
+    "DSATopic",
+    "DSASubtopic",
+    "DSAConcept",
+    "DataChangeEvent",
+    "DynamicJobRecord",
 ]

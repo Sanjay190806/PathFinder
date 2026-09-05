@@ -7,6 +7,8 @@ from backend.app.api.v1.auth import get_current_user
 from backend.app.models.user import User
 from backend.app.engine.recommendation_engine import RecommendationEngine
 
+from backend.app.resources.company_recommendation_service import CompanyRecommendationService
+
 router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
 
 @router.get("")
@@ -39,3 +41,40 @@ def get_recommendations(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+
+@router.get("/company-role-learning")
+def get_company_role_learning_recommendations(
+    company_slug: str = Query(..., description="Target company slug e.g. google"),
+    role_slug: str = Query(..., description="Target role slug e.g. software-engineer"),
+    learner_id: str = Query(..., description="Learner profile ID"),
+    budget: str = Query("FREE", description="FREE or PAID_ALLOWED"),
+    language: str = Query("English", description="Preferred language"),
+    db: Session = Depends(get_db),
+):
+    """Returns personalized multi-resource learning recommendations (Free, Paid, YouTube, Practice, Assessment) for target company role."""
+    return CompanyRecommendationService.get_personalized_recommendations(
+        db=db,
+        company_slug=company_slug,
+        role_slug=role_slug,
+        learner_id=learner_id,
+        budget_preference=budget,
+        preferred_language=language,
+    )
+
+
+@router.get("/dsa-dashboard")
+def get_dsa_readiness_dashboard(
+    company_slug: str = Query(..., description="Target company slug"),
+    role_slug: str = Query(..., description="Target role slug"),
+    learner_id: str = Query(..., description="Learner profile ID"),
+    db: Session = Depends(get_db),
+):
+    """Returns structured topic-by-topic DSA readiness dashboard for a learner targeting an enterprise role."""
+    return CompanyRecommendationService.get_dsa_readiness_dashboard(
+        db=db,
+        company_slug=company_slug,
+        role_slug=role_slug,
+        learner_id=learner_id,
+    )
+

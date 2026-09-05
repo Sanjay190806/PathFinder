@@ -40,7 +40,12 @@ from backend.app.api.v1 import (
     market_intelligence,
     planner,
     preparation,
-    courses
+    courses,
+    careers,
+    companies,
+    dsa,
+    company_roadmaps,
+    dynamic_intelligence,
 )
 from backend.app.api.v1.assessments import assessments_router, questions_router, exam_sessions_router
 
@@ -142,6 +147,7 @@ app.include_router(applications.router, prefix=settings.API_V1_STR)
 app.include_router(career_prep.router, prefix=settings.API_V1_STR)
 app.include_router(education.router, prefix=settings.API_V1_STR)
 app.include_router(career_discovery.router, prefix=settings.API_V1_STR)
+app.include_router(careers.router, prefix=settings.API_V1_STR)
 app.include_router(pathways.router, prefix=settings.API_V1_STR)
 app.include_router(market_intelligence.router, prefix=settings.API_V1_STR)
 app.include_router(planner.router, prefix=settings.API_V1_STR)
@@ -150,6 +156,10 @@ app.include_router(courses.router, prefix=settings.API_V1_STR)
 app.include_router(assessments_router, prefix=settings.API_V1_STR)
 app.include_router(questions_router, prefix=settings.API_V1_STR)
 app.include_router(exam_sessions_router, prefix=settings.API_V1_STR)
+app.include_router(companies.router, prefix=settings.API_V1_STR)
+app.include_router(dsa.router, prefix=settings.API_V1_STR)
+app.include_router(company_roadmaps.router, prefix=settings.API_V1_STR)
+app.include_router(dynamic_intelligence.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

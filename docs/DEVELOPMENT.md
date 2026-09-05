@@ -57,23 +57,28 @@
 ## 3. Running Automated Tests
 
 ### 3.1 Backend Tests (`pytest`)
-Run the full test suite (258+ tests across Phases 1–9):
+Run the full test suite (500+ tests across Phases 1–12):
 ```bash
-pytest backend/tests -v
+$env:SECRET_KEY="test_secret_key_12345678901234567890"; pytest backend/tests/ -q
 ```
-Run specific test stages:
+Run specific Phase 12 stages:
 ```bash
-# Phase 9 Stage 12 Release Verification
-pytest backend/tests/test_phase9_stage12_release_verification.py -v
+# Phase 12 complete suite (Stages 1–12)
+pytest (Get-Item backend/tests/test_phase12*.py).FullName -v
 
-# Global Hardening Tests
-pytest backend/tests/test_phase9_stage11_global_hardening.py -v
+# Stage 10 Dynamic Intelligence
+pytest backend/tests/test_phase12_stage10_dynamic_intelligence.py -v
+
+# Stage 11 Global QA & Hardening
+pytest backend/tests/test_phase12_stage11_global_hardening.py -v
+
+# Stage 12 Final Release Multi-domain Tests
+pytest backend/tests/test_phase12_stage12_final_release.py -v
 ```
 
 ### 3.2 Frontend Typecheck & Production Build
 ```bash
 cd frontend
-npx tsc --noEmit
 npm run build
 ```
 
@@ -82,4 +87,6 @@ npm run build
 ## 4. Coding Conventions & Invariants
 - **Python**: PEP 8 compliance, explicit type annotations, Pydantic v2 schemas for all API contracts.
 - **Frontend**: Next.js 14 App Router, TypeScript strict mode, Tailwind CSS utility classes, Lucide React icons.
-- **Zero Fabrication**: Any new career, resource, or salary benchmark must include explicit source attribution and verification status.
+- **Zero Fabrication**: Any new company, role, DSA priority, resource, or salary benchmark must include explicit source attribution and verification status.
+- **Single Source of Truth**: All engines reference canonical IDs across Career, Company, Role, Skill, DSA, and Resource domains.
+
