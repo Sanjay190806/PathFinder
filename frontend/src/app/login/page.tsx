@@ -40,8 +40,9 @@ export default function LoginPage() {
       if (typeof window !== "undefined") {
         localStorage.setItem("pathfinder_indian_stream_profile", JSON.stringify(selectedStreamProfile));
       }
-      const res = await api.login({ email, password });
-      setAuthToken(res.access_token);
+      await api.login({ email, password });
+      // Token is now in an httpOnly cookie set by the server — just mark as logged in.
+      setAuthToken('cookie');
       router.push("/dashboard");
     } catch (err: any) {
       setError(
@@ -59,8 +60,9 @@ export default function LoginPage() {
       if (typeof window !== "undefined") {
         localStorage.setItem("pathfinder_indian_stream_profile", JSON.stringify(selectedStreamProfile));
       }
-      const res = await api.demoLogin();
-      setAuthToken(res.access_token);
+      await api.demoLogin();
+      // Token is in the httpOnly cookie — mark as logged in.
+      setAuthToken('cookie');
 
       // Save selected stream to demo profile
       await api.updateEducationProfile({
@@ -82,6 +84,7 @@ export default function LoginPage() {
       setIsDemoLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-between selection:bg-primary-500 selection:text-white">

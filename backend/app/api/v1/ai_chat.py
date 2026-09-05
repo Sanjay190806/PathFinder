@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from typing import List
 import uuid
@@ -15,8 +15,11 @@ from backend.app.schemas.ai import (
 from backend.app.ai.coach import AICoach
 from backend.app.ai.config import SUPPORTED_LANGUAGES
 from backend.app.core.config import settings
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter(prefix="/ai", tags=["AI Coach & Grounded Assistant"])
+_ai_limiter = Limiter(key_func=get_remote_address)
 
 @router.get("/languages", response_model=List[LanguageOut])
 def get_supported_languages():
@@ -94,7 +97,9 @@ def get_coach_context(
     )
 
 @router.post("/chat", response_model=ChatResponse)
+@_ai_limiter.limit("20/minute")
 def assistant_chat(
+    request: Request,
     payload: ChatRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

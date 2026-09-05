@@ -3,8 +3,8 @@ from typing import List, Optional
 
 class AssessmentQuestionOut(BaseModel):
     id: str
-    skill_id: str
-    skill_name: str
+    skill_id: Optional[str] = "general-skill"
+    skill_name: Optional[str] = "General"
     question_text: str
     options: List[str]
 

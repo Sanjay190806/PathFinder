@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, BookOpen } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { AIAssistantDrawer } from "@/components/AIAssistantDrawer";
-import { api, getAuthToken } from "@/lib/api";
+import { api, getAuthToken, setAuthToken } from "@/lib/api";
 import { ResourceDetail, Profile } from "@/lib/types";
 import { Alert } from "@/components/ui";
 
@@ -41,8 +41,8 @@ export default function ResourceDetailPage() {
     try {
       const token = getAuthToken();
       if (!token) {
-        const demoRes = await api.demoLogin();
-        localStorage.setItem("pathfinder_token", demoRes.access_token);
+        await api.demoLogin();
+        setAuthToken('cookie');
       }
 
       const [resData, profData] = await Promise.all([
@@ -127,6 +127,26 @@ export default function ResourceDetailPage() {
 
             {/* Hero Card with External Link */}
             <ResourceHero resource={resource} />
+
+            {/* Course Syllabus & Assessment Blueprint Link */}
+            <div className="bg-indigo-50/80 border border-indigo-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-indigo-950">Course Syllabus & Assessment Blueprint</h4>
+                  <p className="text-xs text-indigo-700">Explore modules, topics, learning objectives, and track your assessment readiness.</p>
+                </div>
+              </div>
+              <Link
+                href={`/courses/${resource.id}/syllabus`}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition-colors shrink-0 shadow-sm"
+              >
+                View Syllabus
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
 
             {/* 2-Column Content Layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

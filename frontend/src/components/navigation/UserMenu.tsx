@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { User as UserIcon, LogOut, Target, ChevronDown } from "lucide-react";
-import { removeAuthToken } from "@/lib/api";
+import { api, removeAuthToken } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface UserMenuProps {
@@ -19,8 +19,12 @@ export function UserMenu({ user, targetRole, className }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
-    removeAuthToken();
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      removeAuthToken();
+    }
     router.push("/login");
   };
 

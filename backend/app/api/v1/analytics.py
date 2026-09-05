@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from backend.app.database import get_db
 from backend.app.api.v1.auth import get_current_user
@@ -9,9 +9,178 @@ from backend.app.models.learning_path import LearningPath, LearningPathVersion
 from backend.app.models.progress import Progress
 from backend.app.models.feedback import Feedback
 from backend.app.models.skill import Skill
-from backend.app.schemas.analytics import AnalyticsSummaryOut, SkillMasteryPoint, PhaseProgressOut
+
+from backend.app.schemas.analytics import (
+    AnalyticsSummaryOut, SkillMasteryPoint, PhaseProgressOut,
+    AnalyticsOverviewOut, CourseAnalyticsOut, AssessmentAnalyticsOut,
+    SyllabusAnalyticsOut, SkillAnalyticsOut, LearningConsistencyOut,
+    PlannerAnalyticsOut, CareerReadinessAnalyticsOut, IntegrityAnalyticsOut,
+    MetricDefinitionOut
+)
+from backend.app.analytics.engine import AuthoritativeAnalyticsEngine
+from backend.app.analytics.metric_definitions import get_all_metric_definitions, get_metric_definition
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
+
+
+# -------------------------------------------------------------
+# Phase 10 Stage 10 Endpoints (Authoritative Projections)
+# -------------------------------------------------------------
+
+@router.get("/overview", response_model=AnalyticsOverviewOut)
+def get_analytics_overview(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_learning_overview(profile.id)
+
+
+@router.get("/courses", response_model=CourseAnalyticsOut)
+def get_course_analytics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_course_analytics(profile.id)
+
+
+@router.get("/assessments", response_model=AssessmentAnalyticsOut)
+def get_assessment_analytics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_assessment_analytics(profile.id)
+
+
+@router.get("/modules", response_model=SyllabusAnalyticsOut)
+def get_module_analytics(
+    assessment_id: Optional[str] = Query(None, description="Optional assessment filter"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_syllabus_analytics(profile.id, assessment_id=assessment_id)
+
+
+@router.get("/topics", response_model=SyllabusAnalyticsOut)
+def get_topic_analytics(
+    assessment_id: Optional[str] = Query(None, description="Optional assessment filter"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_syllabus_analytics(profile.id, assessment_id=assessment_id)
+
+
+@router.get("/skills", response_model=SkillAnalyticsOut)
+def get_skill_analytics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_skill_analytics(profile.id)
+
+
+@router.get("/mastery", response_model=SkillAnalyticsOut)
+def get_mastery_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_skill_analytics(profile.id)
+
+
+@router.get("/learning", response_model=LearningConsistencyOut)
+def get_learning_consistency(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_learning_consistency(profile.id)
+
+
+@router.get("/planner", response_model=PlannerAnalyticsOut)
+def get_planner_analytics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_planner_analytics(profile.id)
+
+
+@router.get("/career-readiness", response_model=CareerReadinessAnalyticsOut)
+def get_career_readiness_analytics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_career_readiness_analytics(profile.id)
+
+
+@router.get("/integrity", response_model=IntegrityAnalyticsOut)
+def get_integrity_analytics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    profile = current_user.profile
+    if not profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    engine = AuthoritativeAnalyticsEngine(db)
+    return engine.get_integrity_analytics(profile.id)
+
+
+@router.get("/definitions", response_model=List[MetricDefinitionOut])
+def get_metric_definitions():
+    defs = get_all_metric_definitions()
+    return [MetricDefinitionOut(**d.model_dump()) for d in defs]
+
+
+# -------------------------------------------------------------
+# Legacy Endpoint (Preserved for Backward Compatibility)
+# -------------------------------------------------------------
 
 @router.get("", response_model=AnalyticsSummaryOut)
 def get_analytics(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -59,7 +228,6 @@ def get_analytics(current_user: User = Depends(get_current_user), db: Session = 
                     p_data["completed_modules"] += 1
                     p_data["completed_hours"] += it.resource.estimated_hours
 
-            # Determine true active phase (first incomplete phase, or last phase)
             incomplete_item = next((it for it in active_version.items if not it.is_completed), None)
             if incomplete_item:
                 active_phase = f"Phase {incomplete_item.phase_number}: {incomplete_item.phase_name}"

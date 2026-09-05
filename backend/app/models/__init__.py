@@ -24,11 +24,25 @@ from backend.app.models.opportunity import Opportunity, LearnerOpportunityMatch
 from backend.app.models.career_action import LearnerApplication, ResumeAudit, MockInterviewSession
 from backend.app.models.assessment import (
     Assessment,
+    AssessmentBlueprint,
     AssessmentQuestion,
     AssessmentResponse,
+    AssessmentSession,
+    AssessmentAttemptEvidence,
+    AssessmentIntegrityEvent,
+    AssessmentIntegrityPolicy,
 )
 
 from backend.app.models.preparation import PreparationHistoryRecord
+from backend.app.models.syllabus import (
+    CourseSyllabus,
+    SyllabusModule,
+    SyllabusTopic,
+    SyllabusSubtopic,
+    LearningObjective,
+    SyllabusTopicSkill,
+    LearnerCourseProgress,
+)
 
 __all__ = [
     "User",
@@ -50,8 +64,13 @@ __all__ = [
     "Feedback",
     "Interaction",
     "Assessment",
+    "AssessmentBlueprint",
     "AssessmentQuestion",
     "AssessmentResponse",
+    "AssessmentSession",
+    "AssessmentAttemptEvidence",
+    "AssessmentIntegrityEvent",
+    "AssessmentIntegrityPolicy",
     "BehaviorEvent",
     "PracticalCompetency",
     "PracticalEvidenceRecord",
@@ -70,4 +89,11 @@ __all__ = [
     "ResumeAudit",
     "MockInterviewSession",
     "PreparationHistoryRecord",
+    "CourseSyllabus",
+    "SyllabusModule",
+    "SyllabusTopic",
+    "SyllabusSubtopic",
+    "LearningObjective",
+    "SyllabusTopicSkill",
+    "LearnerCourseProgress",
 ]

@@ -53,9 +53,8 @@ export default function CareerDiscoveryPage() {
       try {
         let token = getAuthToken();
         if (!token) {
-          const demoRes = await api.demoLogin();
-          token = demoRes.access_token;
-          if (token) setAuthToken(token);
+          await api.demoLogin();
+          setAuthToken('cookie');
         }
 
         const [profData, discoveryData] = await Promise.all([

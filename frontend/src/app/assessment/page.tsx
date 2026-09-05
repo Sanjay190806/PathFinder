@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Brain, ArrowRight, RefreshCw, AlertCircle } from "lucide-react";
-import { api, getAuthToken } from "@/lib/api";
+import { api, getAuthToken, setAuthToken } from "@/lib/api";
 import { Navbar } from "@/components/Navbar";
 import { AIAssistantDrawer } from "@/components/AIAssistantDrawer";
 import { Assessment, AssessmentQuestion, Profile, AssessmentResult } from "@/lib/types";
@@ -41,8 +41,8 @@ export default function AssessmentPage() {
     try {
       const token = getAuthToken();
       if (!token) {
-        const demoRes = await api.demoLogin();
-        localStorage.setItem("pathfinder_token", demoRes.access_token);
+        await api.demoLogin();
+        setAuthToken('cookie');
       }
 
       const [profData, assessData] = await Promise.all([

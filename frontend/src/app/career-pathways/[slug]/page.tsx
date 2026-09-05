@@ -87,9 +87,8 @@ export default function CareerPathwayDetailPage() {
       try {
         let token = getAuthToken();
         if (!token) {
-          const demoRes = await api.demoLogin();
-          token = demoRes.access_token;
-          if (token) setAuthToken(token);
+          await api.demoLogin();
+          setAuthToken('cookie');
         }
 
         const [evalData, reqData, profData] = await Promise.all([

@@ -30,8 +30,8 @@ export default function LandingPage() {
   const handleDemoLogin = async () => {
     setIsDemoLoading(true);
     try {
-      const res = await api.demoLogin();
-      setAuthToken(res.access_token);
+      await api.demoLogin();
+      setAuthToken('cookie');
       router.push("/dashboard");
     } catch (err) {
       console.error("Demo login error", err);

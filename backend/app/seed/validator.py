@@ -57,7 +57,9 @@ def validate_seed_data(db: Session) -> Dict[str, Any]:
         report["is_acyclic"] = True
 
     # 3. Validate Resources
-    resources = db.query(LearningResource).all()
+    from backend.app.seed.catalog_data import RESOURCES_CATALOG
+    catalog_slugs = {entry[1] for entry in RESOURCES_CATALOG}
+    resources = db.query(LearningResource).filter(LearningResource.slug.in_(catalog_slugs)).all()
     report["resources_count"] = len(resources)
 
     if len(resources) < 50:

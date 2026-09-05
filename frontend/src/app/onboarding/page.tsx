@@ -210,13 +210,12 @@ export default function OnboardingPage() {
       let token = getAuthToken();
       if (!token) {
         const randId = Math.floor(Math.random() * 10000);
-        const authRes = await api.register({
+        await api.register({
           email: `learner_${randId}@pathfinder.io`,
           password: "Password123!",
           full_name: `Learner #${randId}`
         });
-        token = authRes.access_token;
-        if (token) setAuthToken(token);
+        setAuthToken('cookie');
       }
 
       const targetCareer = customRole.trim() || selectedRole;
@@ -286,9 +285,8 @@ export default function OnboardingPage() {
     try {
       let token = getAuthToken();
       if (!token) {
-        const demoRes = await api.demoLogin();
-        token = demoRes.access_token;
-        if (token) setAuthToken(token);
+        await api.demoLogin();
+        setAuthToken('cookie');
       }
       const targetCareer = customRole.trim() || selectedRole || "AI/ML Engineer";
       await api.completeOnboarding({

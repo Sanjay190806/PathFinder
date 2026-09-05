@@ -60,8 +60,8 @@ export default function RegisterPage() {
         localStorage.setItem("pathfinder_indian_stream_profile", JSON.stringify(indianProfile));
         localStorage.setItem("pathfinder_target_role", targetRole);
       }
-      const res = await api.register({ full_name: fullName, email, password });
-      setAuthToken(res.access_token);
+      await api.register({ full_name: fullName, email, password });
+      setAuthToken('cookie');
 
       // Auto-complete onboarding using the details provided right on this registration screen
       try {

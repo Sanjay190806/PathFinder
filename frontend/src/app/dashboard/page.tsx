@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Target, ArrowRight, RefreshCw, Sparkles, AlertCircle } from "lucide-react";
-import { api, getAuthToken } from "@/lib/api";
+import { api, getAuthToken, setAuthToken } from "@/lib/api";
 import { Navbar } from "@/components/Navbar";
 import { WhyRecommendedModal } from "@/components/WhyRecommendedModal";
 import { AIAssistantDrawer } from "@/components/AIAssistantDrawer";
@@ -40,8 +40,8 @@ export default function DashboardPage() {
       const token = getAuthToken();
       if (!token) {
         // Auto-login to demo if not authenticated
-        const demoRes = await api.demoLogin();
-        localStorage.setItem("pathfinder_token", demoRes.access_token);
+        await api.demoLogin();
+        setAuthToken('cookie');
       }
 
       const [profData, pathData, analData] = await Promise.all([

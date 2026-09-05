@@ -2,6 +2,9 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from backend.app.core.config import settings
 from backend.app.core.logger import logger
 from backend.app.database import engine, Base, SessionLocal
@@ -36,8 +39,17 @@ from backend.app.api.v1 import (
     pathways,
     market_intelligence,
     planner,
-    preparation
+    preparation,
+    courses
 )
+from backend.app.api.v1.assessments import assessments_router, questions_router, exam_sessions_router
+
+# ---------------------------------------------------------------------------
+# Rate limiter — per-IP, default 200 requests/minute across all routes.
+# Sensitive routes (auth, AI) override with stricter limits in their routers.
+# ---------------------------------------------------------------------------
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,13 +70,37 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# ---------------------------------------------------------------------------
+# Rate limiter state + handler
+# ---------------------------------------------------------------------------
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ---------------------------------------------------------------------------
+# CORS — only the origins listed in CORS_ORIGINS setting are allowed.
+# Update CORS_ORIGINS in your .env to add production domains.
+# ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
+
+
+# ---------------------------------------------------------------------------
+# Security headers middleware — applied to every response.
+# ---------------------------------------------------------------------------
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    return response
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -110,6 +146,10 @@ app.include_router(pathways.router, prefix=settings.API_V1_STR)
 app.include_router(market_intelligence.router, prefix=settings.API_V1_STR)
 app.include_router(planner.router, prefix=settings.API_V1_STR)
 app.include_router(preparation.router, prefix=settings.API_V1_STR)
+app.include_router(courses.router, prefix=settings.API_V1_STR)
+app.include_router(assessments_router, prefix=settings.API_V1_STR)
+app.include_router(questions_router, prefix=settings.API_V1_STR)
+app.include_router(exam_sessions_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():
@@ -123,3 +163,4 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+

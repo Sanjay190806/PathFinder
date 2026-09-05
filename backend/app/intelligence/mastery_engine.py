@@ -7,7 +7,6 @@ from backend.app.models.skill import Skill, LearnerSkill
 from backend.app.models.progress import Progress
 from backend.app.models.resource import LearningResource, ResourceSkill
 from backend.app.models.behavior_event import BehaviorEvent
-from backend.app.models.assessment import AssessmentResponse
 from backend.app.schemas.intelligence import SkillMasteryOut
 
 PHASE7_MASTERY_MODEL_VERSION = "phase7.mastery.v1"
@@ -67,15 +66,13 @@ class SkillMasteryEngine:
         completion_count = len(completed_progress)
         completion_evidence = min(1.0, completion_count * 0.40)
 
-        # 3. Assessment Questions Evidence
-        from backend.app.models.assessment import AssessmentQuestion
+        # 3. Assessment Questions Evidence (Phase 10: AssessmentAttemptEvidence)
+        from backend.app.models.assessment import AssessmentAttemptEvidence
         responses = (
-            self.db.query(AssessmentResponse)
-            .join(AssessmentQuestion, AssessmentResponse.question_id == AssessmentQuestion.id)
-            .join(Skill, AssessmentQuestion.skill_id == Skill.id)
+            self.db.query(AssessmentAttemptEvidence)
             .filter(
-                AssessmentResponse.profile_id == profile_id,
-                Skill.slug == skill_slug
+                AssessmentAttemptEvidence.profile_id == profile_id,
+                AssessmentAttemptEvidence.skill_slug == skill_slug
             )
             .all()
         )
