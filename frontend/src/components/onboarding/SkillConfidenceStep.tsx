@@ -30,13 +30,13 @@ export function SkillConfidenceStep({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-purple">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
           <Layers className="h-4 w-4" /> Step 3: Skill Baseline
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground mt-2 tracking-tight">
           What do you already know?
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
           Select any competencies you have prior experience with to avoid repeating beginner material.
         </p>
       </div>
@@ -49,7 +49,7 @@ export function SkillConfidenceStep({
         </div>
       ) : skills.length === 0 ? (
         <EmptyState
-          icon={<Layers className="h-6 w-6 text-slate-400" />}
+          icon={<Layers className="h-6 w-6 text-muted-foreground" />}
           title="Starting fresh"
           description={`PathFinder will sequence your ${targetRole} roadmap starting from core foundational concepts.`}
         />
@@ -65,8 +65,8 @@ export function SkillConfidenceStep({
                 className={cn(
                   "rounded-2xl border p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-150",
                   isSelected
-                    ? "border-primary-500/60 bg-primary-950/40"
-                    : "border-surface-border bg-surface-raised/40 hover:bg-surface-raised"
+                    ? "border-primary/60 bg-primary/10"
+                    : "border-border bg-card hover:bg-surface-muted"
                 )}
               >
                 <div
@@ -76,14 +76,14 @@ export function SkillConfidenceStep({
                   <div
                     className={cn(
                       "h-4 w-4 rounded-md border flex items-center justify-center transition-colors shrink-0",
-                      isSelected ? "bg-primary-600 border-primary-500 text-white" : "border-slate-500 bg-surface"
+                      isSelected ? "bg-primary border-primary text-primary-foreground" : "border-border bg-surface-muted"
                     )}
                   >
                     {isSelected && <Check className="h-3 w-3" />}
                   </div>
                   <div>
-                    <span className="text-xs sm:text-sm font-bold text-white">{sk.name}</span>
-                    <span className="text-[10px] text-slate-400 ml-2 font-mono">({sk.category})</span>
+                    <span className="text-xs sm:text-sm font-bold text-foreground">{sk.name}</span>
+                    <span className="text-[10px] text-muted-foreground ml-2 font-mono">({sk.category})</span>
                   </div>
                 </div>
 
@@ -95,10 +95,10 @@ export function SkillConfidenceStep({
                         type="button"
                         onClick={() => onSetRating(sk.slug, r.key)}
                         className={cn(
-                          "rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500",
+                          "rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
                           currentRating === r.key
-                            ? "bg-primary-600 text-white shadow-sm"
-                            : "bg-surface-raised text-slate-400 hover:text-white"
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-surface-muted text-muted-foreground hover:text-foreground"
                         )}
                       >
                         {r.key}

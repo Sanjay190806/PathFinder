@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 from backend.app.models.resource import LearningResource
 from backend.app.models.profile import LearnerProfile
 from backend.app.ai.provider import ActionProposal
-from backend.app.ai.config import ALLOWED_ACTION_TYPES
+from backend.app.ai.config import ALLOWED_ACTION_TYPES, FORBIDDEN_ACTION_TYPES
 from backend.app.engine.skill_graph import SkillDAG
+from backend.app.core.logger import logger
 
 class ActionValidator:
     def __init__(self, db: Session):
@@ -19,7 +20,18 @@ class ActionValidator:
         """
         Validates action proposal against database catalog, visibility, and prerequisites.
         Returns validated ActionProposal or None if invalid.
+
+        SEC-004: Forbidden action types are rejected first (deny-list before allow-list).
         """
+        # SEC-004: Explicitly reject forbidden action types. These actions must never
+        # be executed by AI regardless of context. Log a security warning for audit.
+        if proposal.action_type in FORBIDDEN_ACTION_TYPES:
+            logger.warning(
+                f"SEC-004: AI proposed FORBIDDEN action '{proposal.action_type}' "
+                f"for profile '{profile.id}'. Rejecting and logging for audit."
+            )
+            return None
+
         if proposal.action_type not in ALLOWED_ACTION_TYPES:
             return None
 

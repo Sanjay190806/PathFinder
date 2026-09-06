@@ -75,13 +75,13 @@ export function StartingPointStep({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary-400">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
           <BookOpen className="h-4 w-4" /> Step 2: Background & Stream
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground mt-2 tracking-tight">
           Where are you starting from in India?
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
           India Education Taxonomy &bull; Cascading selection from Education Level &rarr; Broad Field &rarr; Specialization &rarr; Qualification.
         </p>
       </div>
@@ -103,7 +103,7 @@ export function StartingPointStep({
 
         {/* Technical Experience Level */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-2">
+          <label className="block text-xs font-semibold text-foreground mb-2">
             Technical Exposure Level
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -115,14 +115,18 @@ export function StartingPointStep({
                   type="button"
                   onClick={() => onChangeExperience(opt.level)}
                   className={cn(
-                    "rounded-2xl border p-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+                    "rounded-2xl border p-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     isSelected
-                      ? "border-primary-500 bg-primary-950/70 text-white shadow-md shadow-primary-500/10"
-                      : "border-surface-border bg-surface-raised/40 text-slate-300 hover:bg-surface-raised hover:text-white"
+                      ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      : "border-border bg-card text-foreground hover:bg-surface-muted"
                   )}
                 >
-                  <h4 className="text-sm font-bold text-white">{opt.title}</h4>
-                  <p className="text-xs text-slate-400 mt-1 leading-snug">{opt.desc}</p>
+                  <h4 className={cn("text-sm font-bold", isSelected ? "text-primary-foreground" : "text-foreground")}>
+                    {opt.title}
+                  </h4>
+                  <p className={cn("text-xs mt-1 leading-snug", isSelected ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                    {opt.desc}
+                  </p>
                 </button>
               );
             })}

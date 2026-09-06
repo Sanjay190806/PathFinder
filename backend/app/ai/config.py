@@ -17,6 +17,21 @@ ALLOWED_ACTION_TYPES = {
     "VIEW_OPPORTUNITY"
 }
 
+# SEC-004: Explicitly forbidden action types that the AI must NEVER propose.
+# Even if an AI response contains one of these, the ActionValidator will reject and
+# log it before it can reach any execution path. This is a defense-in-depth boundary —
+# no execution hook for these exists, but the explicit deny-list makes the contract clear.
+FORBIDDEN_ACTION_TYPES = {
+    "SUBMIT_APPLICATION",      # Submitting job/internship applications
+    "MODIFY_PROFILE",          # Mutating learner profile data
+    "MUTATE_ROADMAP",          # Programmatically rewriting roadmap history
+    "MARK_COMPLETE",           # Marking courses/items complete without learner action
+    "CHANGE_ASSESSMENT",       # Altering assessment scores or results
+    "DELETE_USER",             # Any user-deletion action
+    "GRANT_PERMISSION",        # Privilege escalation
+    "CHANGE_PRICING",          # Mutating course or resource pricing truth
+}
+
 SUPPORTED_LANGUAGES = {
     "en": {"code": "en", "name": "English", "native_name": "English"},
     "hi": {"code": "hi", "name": "Hindi", "native_name": "हिन्दी"},

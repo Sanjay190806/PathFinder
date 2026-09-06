@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String            @id @default(uuid())
+  name                String
+  email               String?           @unique
+  passwordHash        String?
+  avatarUrl           String?
+  provider            String?           @default("email")
+  providerId          String?
+  college             String            @default("")
+  roleGoal            String            @default("")
+  timezone            String            @default("Asia/Kolkata")
+  preferredMode       String            @default("local_only")
+  onboardingCompleted Boolean           @default(false)
+  lastLoginAt         DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  appSnapshot         UserAppSnapshot?
+  devices             UserDevice[]
+  syncEvents          SyncEvent[]
+  backupSnapshots     BackupSnapshot[]
+}
+
+model UserSettings {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  theme             String   @default("dark")
+  sidebarCollapsed  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model RoadmapProblem {
+  id             String   @id @default(uuid())
+  dayNumber      Int
+  problemIndex   Int
+  topic          String
+  pattern        String
+  title          String
+  difficulty     String
+  leetcodeNumber Int
+  url            String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([dayNumber, problemIndex])
+}
+
+model DailyLog {
+  id           String   @id @default(uuid())
+  userId       String
+  dayNumber    Int      @unique
+  logDate      DateTime
+  status       String
+  note         String   @db.Text
+  mood         Int
+  energy       Int
+  distractions Int
+  xpEarned     Int
+  savedAt      DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ActivityLog {
+  id           String   @id @default(uuid())
+  dailyLogId   String
+  activityType String
+  count        Int
+  target       Int
+  unit         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ProblemLog {
+  id              String   @id @default(uuid())
+  userId          String
+  dayNumber       Int
+  problemIndex    Int
+  solved          Boolean  @default(false)
+  confidence      Int      @default(3)
+  solveTime       Int      @default(0)
+  attempts        Int      @default(0)
+  notes           String   @db.Text
+  mistakeLog      String   @db.Text
+  revisitFlag     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([dayNumber, problemIndex])
+}
+
+model Project {
+  id                   String   @id @default(uuid())
+  userId               String
+  name                 String
+  description          String   @db.Text
+  techStack            String[]
+  githubUrl            String
+  demoUrl              String
+  status               String
+  backendProgress      Int      @default(0)
+  frontendProgress     Int      @default(0)
+  aiProgress           Int      @default(0)
+  testingProgress      Int      @default(0)
+  documentationProgress Int     @default(0)
+  deploymentProgress   Int      @default(0)
+  resumeReady          Boolean  @default(false)
+  linkedinReady        Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model ResumeProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  targetRole      String
+  atsScore        Int
+  version         String
+  lastUpdated     DateTime?
+  formattingScore Int
+  skillsScore     Int
+  projectsScore   Int
+  educationScore  Int
+  contactScore    Int
+  achievementsScore Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model CareerApplication {
+  id                  String   @id @default(uuid())
+  userId              String
+  company             String
+  role                String
+  location            String
+  salary              String
+  applicationDate     String
+  status              String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Achievement {
+  id             String   @id @default(uuid())
+  userId         String
+  achievementKey String   @unique
+  unlocked       Boolean  @default(false)
+  unlockedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AIMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model FocusSession {
+  id              String   @id @default(uuid())
+  userId          String
+  taskName        String
+  durationMinutes Int
+  completed       Boolean  @default(true)
+  startedAt       DateTime
+  endedAt         DateTime
+  createdAt       DateTime @default(now())
+}
+
+model BackupLog {
+  id         String   @id @default(uuid())
+  userId     String
+  backupType String
+  createdAt  DateTime @default(now())
+}
+
+model AppSnapshot {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserAppSnapshot {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  data          Json
+  schemaVersion Int      @default(1)
+  clientVersion String   @default("unknown")
+  deviceId      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserDevice {
+  id         String   @id @default(uuid())
+  userId     String
+  deviceId   String
+  deviceName String
+  browser    String?
+  os         String?
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+}
+
+model SyncEvent {
+  id            String   @id @default(uuid())
+  userId        String
+  deviceId      String?
+  entityType    String
+  operationType String
+  status        String
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BackupSnapshot {
+  id            String   @id @default(uuid())
+  userId        String
+  name          String
+  data          Json
+  schemaVersion Int      @default(1)
+  clientVersion String   @default("unknown")
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

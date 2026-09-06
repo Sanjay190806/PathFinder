@@ -14,53 +14,56 @@ export function SkillSnapshot({ analytics }: SkillSnapshotProps) {
   const weaknesses = analytics?.weaknesses || [];
 
   return (
-    <Card variant="default" className="p-5 space-y-4">
+    <Card className="p-6 space-y-6 h-full flex flex-col">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <BarChart3 className="h-4 w-4 text-primary-400" />
-          Skill Confidence Matrix
+        <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          Skill Confidence
         </h3>
-        <Link href="/analytics" className="text-xs font-semibold text-primary-400 hover:underline">
+        <Link href="/analytics" className="text-xs font-semibold text-primary hover:underline">
           View All
         </Link>
       </div>
 
       {mastery.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-4 flex-1">
           {mastery.slice(0, 4).map((m, idx) => (
-            <div key={idx} className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="font-semibold text-slate-200">{m.skill}</span>
-                <span className="font-mono text-slate-400">{Math.round(m.confidence * 100)}%</span>
-              </div>
-              <ProgressBar progress={m.confidence * 100} size="sm" color="primary" />
-            </div>
+            <ProgressBar 
+              key={idx}
+              progress={m.confidence * 100} 
+              size="sm" 
+              color="primary" 
+              label={m.skill}
+              valueLabel={`${Math.round(m.confidence * 100)}%`}
+            />
           ))}
         </div>
       ) : (
-        <p className="text-xs text-slate-400 py-3 text-center">
-          Complete courses & assessments to calibrate skill confidence.
-        </p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-muted-foreground text-center bg-surface-muted p-4 rounded-lg">
+            Complete courses & assessments to calibrate skill confidence.
+          </p>
+        </div>
       )}
 
       {(strengths.length > 0 || weaknesses.length > 0) && (
-        <div className="pt-3 border-t border-surface-border space-y-2 text-xs">
+        <div className="pt-4 border-t border-border space-y-3 text-sm mt-auto">
           {strengths.length > 0 && (
-            <div className="flex items-start justify-between gap-2">
-              <span className="text-slate-400 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-emerald-400 shrink-0" /> Strengths:
+            <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-success/10 border border-success/20">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-success shrink-0" /> <span className="font-medium text-foreground">Strengths</span>
               </span>
-              <span className="font-semibold text-emerald-300 text-right truncate max-w-[160px]">
+              <span className="font-semibold text-success truncate max-w-[160px]">
                 {strengths.slice(0, 2).join(", ")}
               </span>
             </div>
           )}
           {weaknesses.length > 0 && (
-            <div className="flex items-start justify-between gap-2">
-              <span className="text-slate-400 flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" /> Priority Gaps:
+            <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-warning/10 border border-warning/20">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-warning shrink-0" /> <span className="font-medium text-foreground">Gaps</span>
               </span>
-              <span className="font-semibold text-amber-300 text-right truncate max-w-[160px]">
+              <span className="font-semibold text-warning truncate max-w-[160px]">
                 {weaknesses.slice(0, 2).join(", ")}
               </span>
             </div>

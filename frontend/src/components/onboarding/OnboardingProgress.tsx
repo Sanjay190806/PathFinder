@@ -27,7 +27,7 @@ export function OnboardingProgress({
     <div className={cn("w-full", className)}>
       {/* Desktop Stepper */}
       <div className="hidden md:flex items-center justify-between relative">
-        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-surface-raised -translate-y-1/2 z-0" />
+        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 z-0" />
         {steps.map((s) => {
           const isCompleted = s.number < currentStep;
           const isCurrent = s.number === currentStep;
@@ -42,10 +42,10 @@ export function OnboardingProgress({
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-200 border-2",
                   isCompleted
-                    ? "bg-emerald-600 border-emerald-500 text-white cursor-pointer"
+                    ? "bg-success border-success text-success-foreground cursor-pointer"
                     : isCurrent
-                    ? "bg-primary-600 border-primary-400 text-white shadow-md shadow-primary-500/25 ring-4 ring-primary-500/20"
-                    : "bg-surface-raised border-surface-border text-slate-400"
+                    ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25 ring-4 ring-primary/20"
+                    : "bg-surface-muted border-border text-muted-foreground"
                 )}
               >
                 {isCompleted ? <Check className="h-4 w-4" /> : s.number}
@@ -53,7 +53,7 @@ export function OnboardingProgress({
               <span
                 className={cn(
                   "text-[11px] font-medium mt-1.5 whitespace-nowrap transition-colors",
-                  isCurrent ? "text-white font-bold" : isCompleted ? "text-slate-300" : "text-slate-500"
+                  isCurrent ? "text-foreground font-bold" : isCompleted ? "text-foreground/80" : "text-muted-foreground"
                 )}
               >
                 {s.label}
@@ -66,8 +66,8 @@ export function OnboardingProgress({
       {/* Mobile Stepper */}
       <div className="flex md:hidden items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-primary-400">Step {currentStep} of {totalSteps}</span>
-          <span className="text-xs font-semibold text-white truncate max-w-[180px]">
+          <span className="text-xs font-bold text-primary">Step {currentStep} of {totalSteps}</span>
+          <span className="text-xs font-semibold text-foreground truncate max-w-[180px]">
             &bull; {steps.find((s) => s.number === currentStep)?.label}
           </span>
         </div>
@@ -77,7 +77,7 @@ export function OnboardingProgress({
               key={s}
               className={cn(
                 "h-1.5 w-5 rounded-full transition-all",
-                s <= currentStep ? "bg-primary-500" : "bg-surface-raised"
+                s <= currentStep ? "bg-primary" : "bg-muted"
               )}
             />
           ))}

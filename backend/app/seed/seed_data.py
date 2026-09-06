@@ -184,6 +184,13 @@ def seed_database(db: Session):
         db.add(demo_goal)
         db.flush()
 
+    # 4b. SEED SYLLABI
+    from backend.app.syllabus.syllabus_engine import SyllabusEngine
+    logger.info("Ensuring active course syllabi across all domains...")
+    syllabus_engine = SyllabusEngine(db)
+    seeded_syllabi_count = syllabus_engine.ensure_all_resources_have_syllabi()
+    logger.info(f"Provisioned active syllabi for {seeded_syllabi_count} courses.")
+
     db.commit()
 
     # 5. VALIDATE

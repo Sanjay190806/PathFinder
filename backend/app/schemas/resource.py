@@ -33,6 +33,14 @@ class ResourceOut(BaseModel):
     source_tier: int = 1
     external_id: Optional[str] = None
 
+    # Multi-Source Learning Intelligence Fields
+    provider_id: str = "generic_provider"
+    source_platform: str = "GENERIC"
+    competencies: List[str] = []
+    topics: List[str] = []
+    retrieved_at: Optional[datetime] = None
+    freshness: str = "FRESH"
+
     model_config = ConfigDict(from_attributes=True)
 
 class ResourceDetailOut(ResourceOut):

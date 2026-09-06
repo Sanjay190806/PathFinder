@@ -41,6 +41,14 @@ class LearningResource(Base):
     source_tier = Column(Integer, default=1)  # 1=Gov/Institutional, 2=Tech Provider, 3=EdTech, 4=YouTube
     external_id = Column(String(100), nullable=True)
 
+    # Multi-Source Learning Intelligence Attributes
+    provider_id = Column(String(100), default="generic_provider", index=True)  # igot_karmayogi, nptel, microsoft_learn, etc.
+    source_platform = Column(String(50), default="GENERIC", index=True)  # IGOT, NPTEL, SWAYAM, MICROSOFT_LEARN, GOOGLE, AWS, CISCO, IBM, COURSERA, EDX, UDEMY, YOUTUBE
+    competencies = Column(JSON, default=list)  # iGOT behavioral, domain, functional competencies
+    topics = Column(JSON, default=list)
+    retrieved_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    freshness = Column(String(50), default="FRESH")  # FRESH, STALE, EXPIRED, UNKNOWN
+
     embedding = Column(JSON, nullable=True)  # Serialized float vector
     embedding_model = Column(String(100), default="text-embedding-004")
     embedding_model_version = Column(String(50), default="v1.0")

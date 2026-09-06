@@ -8,6 +8,8 @@ from backend.app.models.syllabus import LearningObjective, SyllabusTopic, Syllab
 from backend.app.models.assessment import AssessmentQuestion
 from backend.app.models.skill import Skill
 from backend.app.assessment.question_validator import QuestionValidator, QuestionValidationError
+from backend.app.assessment.quality_evaluator import AssessmentItemQualityEvaluator
+from backend.app.schemas.assessment_quality import ItemQualityEvaluationRequest
 from backend.app.ai.groq_provider import GroqProvider
 from backend.app.ai.config import AI_REQUEST_TIMEOUT_SECONDS
 from backend.app.core.logger import logger
@@ -117,6 +119,30 @@ class QuestionGenerator:
         if is_dup:
             raise ValueError(f"Candidate question rejected as duplicate (similarity {sim:.2f} with '{match_text}')")
 
+        # 3. Psychometric & Instrumental Quality Evaluation
+        verification_status = "AI_ASSISTED"
+        if question_type == "MCQ" and raw_candidate.get("options"):
+            quality_req = ItemQualityEvaluationRequest(
+                question_text=raw_candidate["question_text"],
+                options=raw_candidate["options"],
+                correct_option_index=raw_candidate.get("correct_option_index", 0),
+                question_type="MCQ",
+                difficulty=difficulty,
+                skill_name=topic.title if topic else None,
+                explanation=raw_candidate.get("explanation")
+            )
+            quality_report = AssessmentItemQualityEvaluator.evaluate_item(quality_req)
+            if quality_report.certification_level == "REJECTED":
+                logger.warning(
+                    f"Candidate question rejected due to failing instrumental quality (IQS {quality_report.instrumental_quality_score}): "
+                    f"{'; '.join(quality_report.flaws_detected)}"
+                )
+                raise ValueError(
+                    f"Candidate question failed psychometric quality validation (IQS {quality_report.instrumental_quality_score}): "
+                    f"{'; '.join(quality_report.flaws_detected)}"
+                )
+            verification_status = f"VERIFIED_IQS_{int(quality_report.instrumental_quality_score)}"
+
         gen_skill_id = None
         if topic and topic.topic_skills:
             gen_skill_id = topic.topic_skills[0].skill_id
@@ -149,7 +175,7 @@ class QuestionGenerator:
             code_template=raw_candidate.get("code_template"),
             code_language=raw_candidate.get("code_language"),
             source="AI_GENERATED" if self.groq_provider.api_key else "TEMPLATE",
-            verification_status="AI_ASSISTED",
+            verification_status=verification_status,
             generation_method="AI_GENERATED" if self.groq_provider.api_key else "TEMPLATE"
         )
         self.db.add(question)

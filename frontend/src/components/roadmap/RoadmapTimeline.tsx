@@ -3,7 +3,8 @@ import Link from "next/link";
 import { CheckCircle2, Clock, Lock, Play, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { LearningPathItem } from "@/lib/types";
 import { Button, Card, Badge } from "@/components/ui";
-import { formatTimeHours } from "@/lib/utils";
+import { formatTimeHours, getToolBadges, cleanVerifiedUrl } from "@/lib/utils";
+import { ExternalLink } from "lucide-react";
 
 interface RoadmapTimelineProps {
   items: LearningPathItem[];
@@ -85,6 +86,25 @@ export function RoadmapTimeline({ items, filterPhase, onWhyClick }: RoadmapTimel
                       {item.resource_title}
                     </h4>
 
+                    {/* Detected Tool Badges (Adobe Premiere Pro, DaVinci Resolve, Final Cut Pro, etc.) */}
+                    {(() => {
+                      const tools = getToolBadges(item.resource_title, item.resource_description);
+                      if (tools.length === 0) return null;
+                      return (
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {tools.map((t, idx) => (
+                            <span
+                              key={idx}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${t.color}`}
+                            >
+                              <span>{t.icon}</span>
+                              <span>{t.name}</span>
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
                     <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
                       {item.resource_description}
                     </p>
@@ -95,13 +115,13 @@ export function RoadmapTimeline({ items, filterPhase, onWhyClick }: RoadmapTimel
                         {formatTimeHours(item.estimated_hours)}
                       </span>
                       <span>&bull;</span>
-                      <span>Provider: {item.resource_provider}</span>
+                      <span className="text-slate-200 font-medium">Provider: {item.resource_provider}</span>
                       <span>&bull;</span>
-                      <span>Difficulty: {item.difficulty}</span>
+                      <span className="capitalize">Difficulty: {item.difficulty}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
@@ -115,11 +135,29 @@ export function RoadmapTimeline({ items, filterPhase, onWhyClick }: RoadmapTimel
                       <Button
                         variant={item.is_completed ? "subtle" : "primary"}
                         size="sm"
+                        className="w-full sm:w-auto"
                         leftIcon={item.is_completed ? undefined : <Play className="h-3.5 w-3.5 fill-current" />}
                       >
                         {item.is_completed ? "Review" : "Start"}
                       </Button>
                     </Link>
+
+                    {(() => {
+                      const directUrl = cleanVerifiedUrl(item.resource_url);
+                      if (!directUrl) return null;
+                      return (
+                        <a
+                          href={directUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex"
+                        >
+                          <Button variant="ghost" size="sm" className="text-xs text-slate-300 hover:text-white" rightIcon={<ExternalLink className="h-3 w-3" />}>
+                            Open Course
+                          </Button>
+                        </a>
+                      );
+                    })()}
                   </div>
                 </Card>
               ))}

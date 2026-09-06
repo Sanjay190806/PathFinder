@@ -2,11 +2,11 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 export interface ProgressBarProps {
-  progress: number; // 0 to 100
+  progress: number;
   label?: string;
   valueLabel?: string;
   size?: "sm" | "md" | "lg";
-  color?: "primary" | "emerald" | "amber" | "cyan" | "rose";
+  color?: "primary" | "success" | "warning" | "info" | "destructive" | "emerald" | "amber" | "cyan" | "rose";
   className?: string;
 }
 
@@ -27,22 +27,26 @@ export function ProgressBar({
   };
 
   const colorStyles = {
-    primary: "bg-primary-500",
-    emerald: "bg-emerald-500",
-    amber: "bg-amber-500",
-    cyan: "bg-cyan-500",
-    rose: "bg-rose-500"
+    primary: "bg-primary",
+    success: "bg-success",
+    warning: "bg-warning",
+    info: "bg-info",
+    destructive: "bg-destructive",
+    emerald: "bg-success",
+    amber: "bg-warning",
+    cyan: "bg-info",
+    rose: "bg-destructive"
   };
 
   return (
     <div className={cn("w-full space-y-1.5", className)}>
       {(label || valueLabel) && (
         <div className="flex items-center justify-between text-xs">
-          {label && <span className="font-semibold text-slate-300">{label}</span>}
-          {valueLabel && <span className="text-slate-400 font-mono">{valueLabel}</span>}
+          {label && <span className="font-medium text-foreground">{label}</span>}
+          {valueLabel && <span className="text-muted-foreground font-mono">{valueLabel}</span>}
         </div>
       )}
-      <div className={cn("w-full rounded-full bg-surface-raised overflow-hidden", sizeStyles[size])}>
+      <div className={cn("w-full rounded-full bg-surface-muted overflow-hidden", sizeStyles[size])}>
         <div
           className={cn("h-full rounded-full transition-all duration-500 ease-out", colorStyles[color])}
           style={{ width: `${clamped}%` }}

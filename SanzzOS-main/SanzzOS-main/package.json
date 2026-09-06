@@ -1,0 +1,88 @@
+{
+  "name": "sanju-career-os",
+  "version": "1.7.2",
+  "private": true,
+  "main": "electron/main.cjs",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "build": "npm run build:all",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:all": "npm run build --workspaces",
+    "desktop": "npm run build:all && electron .",
+    "desktop:dev": "electron .",
+    "desktop:pack": "npm run build:all && electron-builder --win --dir",
+    "desktop:installer": "npm run build:all && electron-builder --win nsis",
+    "typecheck": "npm run lint --workspace=frontend && npm run build --workspace=backend",
+    "lint": "npm run lint --workspace=frontend",
+    "test": "npm run test --workspace=frontend",
+    "check:all": "npm run prisma:validate && npm run typecheck && npm run test && npm run build:all",
+    "icons:pwa": "node scripts/generate-pwa-icons.mjs",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:all": "npm run dev --workspaces",
+    "prisma:generate": "cd backend && npx prisma generate",
+    "prisma:generate:safe": "node scripts/prisma-generate-safe.js",
+    "prisma:validate": "node scripts/prisma-validate-safe.js",
+    "prisma:migrate": "cd backend && npx prisma migrate dev",
+    "prisma:studio": "npm run prisma:studio --workspace=backend",
+    "prisma:seed": "npm run prisma:seed --workspace=backend",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:restart": "docker compose down && docker compose up -d",
+    "db:status": "cd backend && npx prisma migrate status",
+    "db:doctor": "node scripts/db-doctor.js"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.sanzzgen.sanzzos",
+    "productName": "SanzzOS",
+    "copyright": "Copyright © 2026 SanzzGen",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/dist/**/*",
+      "backend/build/**/*",
+      "backend/prisma/**/*",
+      "backend/package.json",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "frontend/public/icons/icon-512.png",
+        "to": "icon.png"
+      }
+    ],
+    "asarUnpack": [
+      "backend/prisma/**/*",
+      "node_modules/@prisma/**/*",
+      "node_modules/.prisma/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "frontend/public/icons/icon-512.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SanzzOS"
+    }
+  }
+}

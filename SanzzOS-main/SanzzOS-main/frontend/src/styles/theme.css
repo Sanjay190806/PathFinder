@@ -1,0 +1,156 @@
+/* Sanzz Immersive OS - Presets */
+
+:root[data-theme="classic"] {
+  --bg-base: #060611;
+  --bg-surface: #0d0d1f;
+  --bg-card: #11112a;
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --bg-glass-hover: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(59, 130, 246, 0.25);
+  --text-primary: #F0F0FF;
+  --text-secondary: #A0A0C8;
+  --text-muted: #5A5A8A;
+  
+  --accent-primary: #3B82F6;
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --shadow-glow: 0 0 16px rgba(59, 130, 246, 0.15);
+}
+
+:root[data-theme="ember-blade"] {
+  --bg-base: #04040a;
+  --bg-surface: #090914;
+  --bg-card: #0e0e1f;
+  --bg-glass: rgba(249, 115, 22, 0.03);
+  --bg-glass-hover: rgba(249, 115, 22, 0.07);
+  --border-subtle: rgba(249, 115, 22, 0.08);
+  --border-accent: rgba(249, 115, 22, 0.35);
+  --text-primary: #FFF0EB;
+  --text-secondary: #D1B8B0;
+  --text-muted: #8F746C;
+  
+  --accent-primary: #F97316; /* Ember orange */
+  --accent-glow: rgba(249, 115, 22, 0.25);
+  --shadow-glow: 0 0 24px rgba(249, 115, 22, 0.2);
+  --accent-secondary: #EAB308; /* Gold */
+}
+
+:root[data-theme="shadow-note"] {
+  --bg-base: #020202;
+  --bg-surface: #07070a;
+  --bg-card: #0b0b10;
+  --bg-glass: rgba(239, 68, 68, 0.02);
+  --bg-glass-hover: rgba(239, 68, 68, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-accent: rgba(239, 68, 68, 0.3);
+  --text-primary: #F5F5FA;
+  --text-secondary: #9E9EB0;
+  --text-muted: #555566;
+  
+  --accent-primary: #EF4444; /* Blood red */
+  --accent-glow: rgba(239, 68, 68, 0.2);
+  --shadow-glow: 0 0 20px rgba(239, 68, 68, 0.15);
+  --accent-secondary: #EC4899;
+}
+
+:root[data-theme="storm-shinobi"] {
+  --bg-base: #03030f;
+  --bg-surface: #07071c;
+  --bg-card: #0a0a24;
+  --bg-glass: rgba(6, 182, 212, 0.03);
+  --bg-glass-hover: rgba(6, 182, 212, 0.07);
+  --border-subtle: rgba(6, 182, 212, 0.08);
+  --border-accent: rgba(6, 182, 212, 0.35);
+  --text-primary: #E8FDFF;
+  --text-secondary: #A9CCD1;
+  --text-muted: #64868B;
+  
+  --accent-primary: #06B6D4; /* Electric Cyan */
+  --accent-glow: rgba(6, 182, 212, 0.25);
+  --shadow-glow: 0 0 24px rgba(6, 182, 212, 0.22);
+  --accent-secondary: #8B5CF6; /* Violet */
+}
+
+:root[data-theme="web-velocity"] {
+  --bg-base: #030208;
+  --bg-surface: #080614;
+  --bg-card: #0c0a20;
+  --bg-glass: rgba(236, 72, 153, 0.03);
+  --bg-glass-hover: rgba(236, 72, 153, 0.07);
+  --border-subtle: rgba(236, 72, 153, 0.06);
+  --border-accent: rgba(236, 72, 153, 0.3);
+  --text-primary: #FFF0F5;
+  --text-secondary: #C8AAB7;
+  --text-muted: #826673;
+  
+  --accent-primary: #EC4899; /* Pink Hero */
+  --accent-glow: rgba(236, 72, 153, 0.2);
+  --shadow-glow: 0 0 20px rgba(236, 72, 153, 0.18);
+  --accent-secondary: #3B82F6; /* Speed Blue */
+}
+
+:root[data-theme="minimal-focus"] {
+  --bg-base: #0a0a0c;
+  --bg-surface: #121216;
+  --bg-card: #181820;
+  --bg-glass: rgba(255, 255, 255, 0.01);
+  --bg-glass-hover: rgba(255, 255, 255, 0.03);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(255, 255, 255, 0.15);
+  --text-primary: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted: #475569;
+  
+  --accent-primary: #94A3B8; /* Monochrome gray */
+  --accent-glow: rgba(255, 255, 255, 0.05);
+  --shadow-glow: 0 0 8px rgba(255, 255, 255, 0.03);
+}
+
+/* === Batman's Gotham Knight Theme === */
+:root[data-theme="gotham-knight"] {
+  --bg-base: #010105;
+  --bg-surface: #05050e;
+  --bg-card: #09091a;
+  --bg-glass: rgba(234, 179, 8, 0.02);
+  --bg-glass-hover: rgba(234, 179, 8, 0.05);
+  --border-subtle: rgba(234, 179, 8, 0.06);
+  --border-accent: rgba(234, 179, 8, 0.35);
+  --text-primary: #F5F0E0;
+  --text-secondary: #B8A96E;
+  --text-muted: #665E40;
+
+  --accent-primary: #EAB308; /* Bat-gold */
+  --accent-glow: rgba(234, 179, 8, 0.2);
+  --shadow-glow: 0 0 24px rgba(234, 179, 8, 0.18);
+  --accent-secondary: #374151; /* Gotham grey */
+  --spider-red: #DC2626;
+  --spider-blue: #3B82F6;
+  --batman-gold: #EAB308;
+  --joker-green: #22C55E;
+  --joker-purple: #A855F7;
+}
+
+/* === Spider-Man Spider-Verse Theme === */
+:root[data-theme="spider-verse"] {
+  --bg-base: #020008;
+  --bg-surface: #05001a;
+  --bg-card: #080028;
+  --bg-glass: rgba(220, 38, 38, 0.03);
+  --bg-glass-hover: rgba(220, 38, 38, 0.07);
+  --border-subtle: rgba(220, 38, 38, 0.08);
+  --border-accent: rgba(220, 38, 38, 0.35);
+  --text-primary: #FFF5F5;
+  --text-secondary: #CDB0B0;
+  --text-muted: #80605E;
+
+  --accent-primary: #DC2626; /* Spider-red */
+  --accent-glow: rgba(220, 38, 38, 0.25);
+  --shadow-glow: 0 0 24px rgba(220, 38, 38, 0.2);
+  --accent-secondary: #3B82F6; /* Spider-blue */
+  --spider-red: #DC2626;
+  --spider-blue: #3B82F6;
+  --batman-gold: #EAB308;
+  --joker-green: #22C55E;
+  --joker-purple: #A855F7;
+}
+

@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { CheckCircle2, Cpu, ArrowRight, Route, Target, Sparkles } from "lucide-react";
+import { CheckCircle2, Cpu, ArrowRight, Route } from "lucide-react";
 import { LearningPath } from "@/lib/types";
 import { Button } from "@/components/ui";
 
@@ -26,18 +26,18 @@ export function PathPreviewStep({ learningPath, targetRole }: PathPreviewStepPro
 
   return (
     <div className="text-center space-y-6 animate-in zoom-in-95 duration-300">
-      <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-primary-600 text-white shadow-xl shadow-primary-500/30">
+      <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-xl shadow-primary/30">
         <Cpu className="h-8 w-8 animate-pulse" />
       </div>
 
       <div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-800/60 bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-400 mb-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success mb-2">
           <CheckCircle2 className="h-3.5 w-3.5" /> Roadmap Synthesized Successfully
         </span>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
           Your path towards {targetRole} is ready.
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-md mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
           Prerequisites verified with 0% dependency violations. Here is the dynamic curriculum synthesized for your baseline:
         </p>
       </div>
@@ -48,23 +48,23 @@ export function PathPreviewStep({ learningPath, targetRole }: PathPreviewStepPro
           {sortedPhases.map(([num, phase]) => (
             <div
               key={num}
-              className="rounded-2xl border border-surface-border bg-surface-raised/60 p-3.5 flex flex-col justify-between"
+              className="rounded-2xl border border-border bg-card p-3.5 flex flex-col justify-between"
             >
               <div>
-                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">
+                <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">
                   Phase {num}
                 </span>
-                <h4 className="text-xs font-bold text-white mt-1 truncate">{phase.name}</h4>
-                <p className="text-[11px] text-slate-400 mt-1">{phase.items.length} Modules</p>
+                <h4 className="text-xs font-bold text-foreground mt-1 truncate">{phase.name}</h4>
+                <p className="text-[11px] text-muted-foreground mt-1">{phase.items.length} Modules</p>
               </div>
-              <div className="mt-3 pt-2 border-t border-slate-700/50 text-[10px] text-primary-400 font-semibold">
+              <div className="mt-3 pt-2 border-t border-border text-[10px] text-primary font-semibold">
                 {num === 1 ? "Active Next Step" : "Locked (Prerequisites)"}
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="p-4 rounded-2xl border border-surface-border bg-surface text-xs text-slate-400">
+        <div className="p-4 rounded-2xl border border-border bg-card text-xs text-muted-foreground">
           Curriculum synthesized and saved to your learner profile.
         </div>
       )}

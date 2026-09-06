@@ -11,42 +11,46 @@ interface AdaptiveUpdatesProps {
 export function AdaptiveUpdates({ activeVersion }: AdaptiveUpdatesProps) {
   if (!activeVersion || activeVersion.version_number <= 1) {
     return (
-      <Card variant="default" className="p-5 space-y-2.5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-raised text-primary-400 border border-surface-border">
-            <RefreshCw className="h-3.5 w-3.5" />
+      <Card className="p-6 space-y-3 bg-surface-muted/50 border-dashed">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface border text-muted-foreground">
+            <RefreshCw className="h-4 w-4" />
           </div>
-          <h3 className="text-sm font-bold text-white">Adaptive Learning Engine</h3>
+          <h3 className="text-sm font-bold text-foreground">Adaptive Engine</h3>
         </div>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          As you submit course feedback (e.g. &apos;Too Fast&apos;, &apos;Too Difficult&apos;) or complete milestones, your roadmap automatically adapts and creates version history.
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          As you provide feedback or complete milestones, your roadmap will automatically adapt and version itself here.
         </p>
       </Card>
     );
   }
 
   return (
-    <Card variant="default" className="p-5 border-primary-500/40 space-y-3 bg-gradient-to-br from-primary-950/30 via-surface to-surface">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-600/20 text-primary-400 border border-primary-500/30">
-            <RefreshCw className="h-3.5 w-3.5 animate-spin-slow" />
-          </div>
-          <div>
-            <span className="text-[10px] uppercase font-bold text-accent-cyan">Active Adaptation</span>
-            <h4 className="text-sm font-bold text-white">Version {activeVersion.version_number}.0</h4>
-          </div>
-        </div>
-        <Badge variant="cyan" size="sm">{activeVersion.trigger}</Badge>
+    <Card className="p-6 border-primary/30 space-y-4 bg-gradient-to-br from-primary/5 to-transparent relative overflow-hidden">
+      <div className="absolute top-0 right-0 p-4 opacity-10">
+        <Sparkles className="h-24 w-24 text-primary" />
       </div>
 
-      <p className="text-xs text-slate-300 leading-relaxed">
+      <div className="flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+            <RefreshCw className="h-5 w-5 animate-[spin_4s_linear_infinite]" />
+          </div>
+          <div>
+            <span className="text-xs uppercase font-bold text-primary tracking-wider">Adapted</span>
+            <h4 className="text-base font-bold text-foreground leading-tight">Version {activeVersion.version_number}.0</h4>
+          </div>
+        </div>
+        <Badge variant="cyan" size="sm" className="hidden sm:inline-flex bg-info/20 text-info border-info/30 hover:bg-info/30">{activeVersion.trigger}</Badge>
+      </div>
+
+      <p className="text-sm text-foreground/80 leading-relaxed relative z-10">
         {activeVersion.change_summary || "Curriculum updated to reflect your latest progress and feedback."}
       </p>
 
-      <div className="pt-2 border-t border-surface-border flex justify-end">
-        <Link href="/roadmap" className="text-xs font-semibold text-primary-400 hover:text-primary-300 flex items-center gap-1">
-          Inspect Version Diff <ArrowRight className="h-3 w-3" />
+      <div className="pt-3 border-t border-border/50 flex justify-end relative z-10 mt-2">
+        <Link href="/roadmap" className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 group">
+          Inspect Changes <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
     </Card>

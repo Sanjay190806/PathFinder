@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from datetime import datetime, timezone
 from backend.app.database import get_db
 from backend.app.models.resource import LearningResource
 from backend.app.models.progress import Progress
@@ -48,7 +49,10 @@ def discover_resources(
     price: Optional[str] = Query(None, description="Price filter: ALL, FREE, GENUINELY_FREE, PAID"),
     difficulty: Optional[str] = Query(None, description="Difficulty level"),
     resource_type: Optional[str] = Query(None, description="Resource type"),
-    provider: Optional[str] = Query(None, description="Provider filter"),
+    provider: Optional[str] = Query(None, description="Provider filter (e.g. igot_karmayogi, nptel, microsoft_learn)"),
+    source_tier: Optional[int] = Query(None, description="Source tier filter (1: Gov/Institutional, 2: Tech Provider, 3: EdTech, 4: Video)"),
+    competency: Optional[str] = Query(None, description="Competency or topic search term"),
+    free_only: bool = Query(False, description="Filter for free learning content only"),
     db: Session = Depends(get_db)
 ):
     engine = ResourceDiscoveryEngine(db)
@@ -59,8 +63,70 @@ def discover_resources(
         price_filter=price,
         difficulty=difficulty,
         resource_type=resource_type,
-        provider=provider
+        provider=provider,
+        source_tier=source_tier,
+        competency=competency,
+        free_only=free_only
     )
+
+@router.get("/providers")
+def get_learning_providers():
+    """Returns all supported learning providers, their tier hierarchy, and official domains."""
+    from backend.app.providers.registry import provider_registry
+    return {
+        "providers": provider_registry.list_providers(),
+        "source_tiers": {
+            1: "Tier 1: Government & Institutional (iGOT Karmayogi, NPTEL, SWAYAM)",
+            2: "Tier 2: Official Technology Providers (Microsoft Learn, Google, AWS, Cisco, IBM)",
+            3: "Tier 3: Established EdTech Platforms (Coursera, edX, Udemy)",
+            4: "Tier 4: Verified Video Learning (Curated YouTube Series)"
+        }
+    }
+
+@router.get("/diagnostics")
+def get_resource_diagnostics(db: Session = Depends(get_db)):
+    """Provides authoritative data quality diagnostics for multi-source learning resources."""
+    engine = ResourceDiscoveryEngine(db)
+    all_res = engine.get_all_catalog_resources()
+
+    tier_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+    status_counts = {"VERIFIED": 0, "STALE": 0, "EXPIRED": 0, "UNVERIFIED": 0}
+    provider_counts: Dict[str, int] = {}
+    igot_metrics = {
+        "total_courses": 0,
+        "verified_courses": 0,
+        "official_domains": ["igotkarmayogi.gov.in", "portal.igotkarmayogi.gov.in"],
+        "mapped_competencies": 0,
+        "status": "HEALTHY"
+    }
+
+    from backend.app.resources.taxonomy_mapper import IGOT_COMPETENCY_TO_CANONICAL_SKILLS
+    igot_metrics["mapped_competencies"] = len(IGOT_COMPETENCY_TO_CANONICAL_SKILLS)
+
+    for r in all_res:
+        t = r.get("source_tier", 3)
+        tier_counts[t] = tier_counts.get(t, 0) + 1
+
+        v = r.get("verification_status", "UNVERIFIED")
+        status_counts[v] = status_counts.get(v, 0) + 1
+
+        p = r.get("provider", "Unknown")
+        provider_counts[p] = provider_counts.get(p, 0) + 1
+
+        pid = (r.get("provider_id") or "").lower()
+        if pid == "igot_karmayogi" or "igot" in p.lower():
+            igot_metrics["total_courses"] += 1
+            if v == "VERIFIED":
+                igot_metrics["verified_courses"] += 1
+
+    return {
+        "total_learning_resources": len(all_res),
+        "source_tiers": tier_counts,
+        "verification_breakdown": status_counts,
+        "providers_distribution": provider_counts,
+        "igot_karmayogi": igot_metrics,
+        "diagnostics_timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 @router.get("/recommendations", response_model=List[ResourceDiscoveryOut])
 def get_personalized_resource_recommendations(

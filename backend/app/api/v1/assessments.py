@@ -10,6 +10,7 @@ from backend.app.models.user import User
 from backend.app.models.assessment import (
     Assessment, AssessmentBlueprint, AssessmentQuestion, AssessmentSession
 )
+from backend.app.models.skill import Skill
 from backend.app.models.syllabus import CourseSyllabus
 from backend.app.schemas.assessment_blueprint import (
     AssessmentBlueprintCreate, AssessmentBlueprintOut,
@@ -36,6 +37,15 @@ from backend.app.assessment.adaptive_selector import AdaptiveQuestionSelector
 from backend.app.assessment.exam_runtime import ExamRuntime
 from backend.app.assessment.integrity_monitor import IntegrityMonitor
 from backend.app.assessment.integrity_policy_engine import IntegrityPolicyEngine
+from backend.app.schemas.assessment_quality import (
+    ItemQualityEvaluationRequest,
+    ItemQualityEvaluationReport,
+    BatchQualityEvaluationReport,
+    DomainExamGenerateRequest,
+    DomainExamResponse,
+    VerifiedExamQuestion
+)
+from backend.app.assessment.quality_evaluator import AssessmentItemQualityEvaluator
 
 
 assessments_router = APIRouter(prefix="/assessments", tags=["Course Assessment & Blueprints"])
@@ -95,6 +105,174 @@ def generate_assessment(
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@assessments_router.post("/generate-domain-exam", response_model=DomainExamResponse)
+def generate_domain_exam(
+    payload: DomainExamGenerateRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Step 2 Pipeline: Generates and certifies a domain-specific 100-mark assessment,
+    strictly filtering candidate questions through the Instrumental Quality Evaluator
+    (checking distractor plausibility, key unambiguity, Bloom's cognitive depth, and readability).
+    """
+    candidates = list(payload.candidate_questions or [])
+    if not candidates:
+        db_qs = db.query(AssessmentQuestion).limit(payload.total_questions or 10).all()
+        if db_qs:
+            candidates = [
+                DomainExamCandidateItem(
+                    id=q.id,
+                    question_text=q.question_text,
+                    options=q.options or ["Option A", "Option B", "Option C", "Option D"],
+                    correct_option_index=q.correct_option_index if q.correct_option_index is not None else 0,
+                    difficulty=q.difficulty or "INTERMEDIATE",
+                    skill_name=q.skill.name if q.skill else "Domain Core",
+                    explanation=q.explanation or "Curriculum objective item.",
+                    marks=q.marks or 3.0
+                )
+                for q in db_qs
+            ]
+        else:
+            domain_title = payload.domain.replace("_", " ").title()
+            candidates = [
+                DomainExamCandidateItem(
+                    id=str(uuid.uuid4()),
+                    question_text=f"Which algorithm or architectural pattern is best suited for optimizing {domain_title} systems under high concurrency?",
+                    options=[
+                        "Asynchronous non-blocking message queues with backpressure",
+                        "Synchronous blocking polling in a single-threaded loop",
+                        "Spin-locking shared memory without thread mutex locks",
+                        "Exponential busy-waiting on centralized database queries"
+                    ],
+                    correct_option_index=0,
+                    difficulty="INTERMEDIATE",
+                    skill_name=f"{domain_title} Architecture",
+                    explanation="Asynchronous queues provide decoupling and backpressure protection.",
+                    marks=4.0
+                ),
+                DomainExamCandidateItem(
+                    id=str(uuid.uuid4()),
+                    question_text=f"When evaluating model or system generalization in {domain_title}, which metric prevents overfitting to frequent classes?",
+                    options=[
+                        "Macro-averaged F1 score across stratified cross-validation",
+                        "Raw accuracy score without class balance normalization",
+                        "Apparent training set loss on memorized samples",
+                        "Empirical resubstitution error on the training dataset"
+                    ],
+                    correct_option_index=0,
+                    difficulty="ADVANCED",
+                    skill_name=f"{domain_title} Evaluation",
+                    explanation="Macro-averaged F1 treats all classes equally and reveals minority class performance.",
+                    marks=4.0
+                )
+            ]
+
+    verified_questions: List[VerifiedExamQuestion] = []
+    rejected_count = 0
+    iqs_scores: List[float] = []
+
+    for c in candidates:
+        quality_req = ItemQualityEvaluationRequest(
+            question_text=c.question_text,
+            options=c.options,
+            correct_option_index=c.correct_option_index,
+            difficulty=c.difficulty.upper() if c.difficulty else "INTERMEDIATE",
+            skill_name=c.skill_name,
+            domain=payload.domain,
+            explanation=c.explanation
+        )
+        report = AssessmentItemQualityEvaluator.evaluate_item(quality_req, question_id=c.id)
+        iqs_scores.append(report.instrumental_quality_score)
+
+        if report.instrumental_quality_score < payload.min_quality_score or report.certification_level == "REJECTED":
+            rejected_count += 1
+            continue
+
+        verified_questions.append(VerifiedExamQuestion(
+            id=c.id or str(uuid.uuid4()),
+            question_text=c.question_text,
+            options=c.options,
+            correct_option_index=c.correct_option_index,
+            marks=c.marks,
+            difficulty=c.difficulty,
+            skill_name=c.skill_name or "Domain Core",
+            explanation=c.explanation,
+            instrumental_quality_score=report.instrumental_quality_score,
+            certification_level=report.certification_level,
+            detected_bloom_level=report.detected_bloom_level,
+            is_approved_for_exam=report.is_approved_for_exam
+        ))
+
+    avg_iqs = round(sum(iqs_scores) / max(1, len(iqs_scores)), 1) if iqs_scores else 90.0
+
+    if avg_iqs >= 88.0:
+        cert = "GOLD_STANDARD"
+    elif avg_iqs >= 75.0:
+        cert = "CERTIFIED"
+    else:
+        cert = "PROVISIONAL"
+
+    exam_id = str(uuid.uuid4())
+    assessment_record = Assessment(
+        id=exam_id,
+        title=f"{payload.domain.replace('_', ' ').title()} - AI Proctored Certification Exam",
+        domain=payload.domain,
+        assessment_type="STANDALONE_DOMAIN",
+        total_questions=len(verified_questions),
+        total_marks=payload.total_marks,
+        passing_score=40.0,
+        status="VALIDATED"
+    )
+    db.add(assessment_record)
+    db.flush()
+
+    for vq in verified_questions:
+        skill_name = vq.skill_name or "General"
+        skill_slug = skill_name.lower().strip().replace(" ", "-").replace("/", "-")
+        skill = db.query(Skill).filter((Skill.slug == skill_slug) | (Skill.name.ilike(skill_name))).first()
+        if not skill:
+            skill = Skill(
+                id=str(uuid.uuid4()),
+                name=skill_name,
+                slug=skill_slug,
+                category=payload.domain.replace('_', ' ').title(),
+                difficulty_tier="Intermediate"
+            )
+            db.add(skill)
+            db.flush()
+
+        q_record = AssessmentQuestion(
+            id=vq.id,
+            assessment_id=exam_id,
+            skill_id=skill.id,
+            question_text=vq.question_text,
+            options=vq.options,
+            correct_option_index=vq.correct_option_index,
+            difficulty=vq.difficulty.upper() if vq.difficulty else "INTERMEDIATE",
+            marks=vq.marks,
+            explanation=vq.explanation,
+            source="AI_GENERATED"
+        )
+        db.add(q_record)
+
+    db.commit()
+
+    return DomainExamResponse(
+        exam_id=exam_id,
+        domain=payload.domain,
+        target_role=payload.target_role,
+        total_questions=len(verified_questions),
+        total_marks=payload.total_marks,
+        average_iqs=avg_iqs,
+        certification_level=cert,
+        passing_score=40.0,
+        approved_questions_count=len(verified_questions),
+        rejected_questions_count=rejected_count,
+        questions=verified_questions,
+        generated_at=datetime.now(timezone.utc).isoformat()
+    )
 
 
 @assessments_router.get("/{assessment_id}", response_model=AssessmentLearnerViewOut)
@@ -239,6 +417,56 @@ def generate_ai_question(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.errors)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@questions_router.post("/evaluate-quality", response_model=ItemQualityEvaluationReport)
+def evaluate_question_quality(payload: ItemQualityEvaluationRequest):
+    """
+    Evaluates the instrumental psychometric quality of an assessment item
+    (distractor plausibility, key ambiguity, Bloom's cognitive depth, construct validity, and reading burden).
+    """
+    return AssessmentItemQualityEvaluator.evaluate_item(payload)
+
+
+@questions_router.post("/{question_id}/evaluate-quality", response_model=ItemQualityEvaluationReport)
+def evaluate_existing_question_quality(
+    question_id: str,
+    db: Session = Depends(get_db)
+):
+    """Evaluates an existing stored Question Bank item and returns its psychometric quality certification."""
+    q = db.query(AssessmentQuestion).filter(AssessmentQuestion.id == question_id).first()
+    if not q:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
+
+    req = ItemQualityEvaluationRequest(
+        question_text=q.question_text,
+        options=q.options or [],
+        correct_option_index=q.correct_option_index or 0,
+        question_type=q.question_type or "MCQ",
+        difficulty=q.difficulty or "INTERMEDIATE",
+        skill_name=q.skill.name if q.skill else None,
+        explanation=q.explanation
+    )
+    return AssessmentItemQualityEvaluator.evaluate_item(req, question_id=q.id)
+
+
+@questions_router.post("/evaluate-batch", response_model=BatchQualityEvaluationReport)
+def evaluate_batch_questions(items: List[ItemQualityEvaluationRequest]):
+    """Evaluates a batch of candidate assessment items and returns aggregate quality metrics."""
+    reports = [AssessmentItemQualityEvaluator.evaluate_item(item) for item in items]
+    approved = sum(1 for r in reports if r.is_approved_for_exam)
+    needs_rev = sum(1 for r in reports if r.certification_level == "NEEDS_REVISION")
+    rejected = sum(1 for r in reports if r.certification_level == "REJECTED")
+    avg_iqs = round(sum(r.instrumental_quality_score for r in reports) / max(1, len(reports)), 1)
+
+    return BatchQualityEvaluationReport(
+        total_items_evaluated=len(reports),
+        approved_count=approved,
+        needs_revision_count=needs_rev,
+        rejected_count=rejected,
+        average_iqs=avg_iqs,
+        reports=reports
+    )
 
 
 # ============================================================================

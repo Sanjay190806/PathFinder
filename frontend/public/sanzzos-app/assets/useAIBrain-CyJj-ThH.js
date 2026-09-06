@@ -1,0 +1,1 @@
+import{u as s,r as t}from"./index-BZpLx7qZ.js";import{l as n,b as m,s as S}from"./aiBrainService-DEDOp8qs.js";function f(){const a=s(r=>r),[e,o]=t.useState(()=>n()),u=t.useMemo(()=>m(a),[a]);return{summary:e||u,refresh:()=>{const r=m(s.getState());return S(r),o(r),r},isFallback:!e}}export{f as u};

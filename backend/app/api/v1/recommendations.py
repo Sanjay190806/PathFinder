@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
 
 from backend.app.database import get_db
-from backend.app.api.v1.auth import get_current_user
+from backend.app.api.v1.auth import get_current_user, get_optional_current_user
+from backend.app.api.v1.careers import resolve_authorized_profile_id
 from backend.app.models.user import User
 from backend.app.engine.recommendation_engine import RecommendationEngine
 
@@ -50,9 +51,11 @@ def get_company_role_learning_recommendations(
     learner_id: str = Query(..., description="Learner profile ID"),
     budget: str = Query("FREE", description="FREE or PAID_ALLOWED"),
     language: str = Query("English", description="Preferred language"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db),
 ):
     """Returns personalized multi-resource learning recommendations (Free, Paid, YouTube, Practice, Assessment) for target company role."""
+    resolve_authorized_profile_id(learner_id, current_user, db=db)
     return CompanyRecommendationService.get_personalized_recommendations(
         db=db,
         company_slug=company_slug,
@@ -68,9 +71,11 @@ def get_dsa_readiness_dashboard(
     company_slug: str = Query(..., description="Target company slug"),
     role_slug: str = Query(..., description="Target role slug"),
     learner_id: str = Query(..., description="Learner profile ID"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: Session = Depends(get_db),
 ):
     """Returns structured topic-by-topic DSA readiness dashboard for a learner targeting an enterprise role."""
+    resolve_authorized_profile_id(learner_id, current_user, db=db)
     return CompanyRecommendationService.get_dsa_readiness_dashboard(
         db=db,
         company_slug=company_slug,

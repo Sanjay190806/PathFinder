@@ -49,6 +49,7 @@ export function CareerDestinationStep({
       return;
     }
 
+    let isCancelled = false;
     const timer = setTimeout(() => {
       setIsSearching(true);
       const params: Record<string, any> = { page_size: 30 };
@@ -57,6 +58,7 @@ export function CareerDestinationStep({
 
       api.searchCareers(params)
         .then((res) => {
+          if (isCancelled) return;
           if (res && Array.isArray(res.items)) {
             setSearchResults(res.items);
           } else {
@@ -64,6 +66,7 @@ export function CareerDestinationStep({
           }
         })
         .catch(() => {
+          if (isCancelled) return;
           // Fallback to client-side filter of careerRoles
           const q = searchQuery.toLowerCase();
           const fallback = careerRoles
@@ -85,12 +88,19 @@ export function CareerDestinationStep({
               status: "ACTIVE",
               version: 1
             }));
-          setSearchResults(fallback);
+          setSearchResults(fallback as any);
         })
-        .finally(() => setIsSearching(false));
-    }, 200);
+        .finally(() => {
+          if (!isCancelled) {
+            setIsSearching(false);
+          }
+        });
+    }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
   }, [searchQuery, selectedDomain, careerRoles]);
 
   // Combine display list
@@ -114,13 +124,13 @@ export function CareerDestinationStep({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-cyan">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
           <Target className="h-4 w-4" /> Step 1: Destination
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground mt-2 tracking-tight">
           What are you building toward?
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
           Explore global careers across technology, design, healthcare, engineering, business, and trades.
         </p>
       </div>
@@ -141,11 +151,11 @@ export function CareerDestinationStep({
               value={selectedDomain}
               onChange={(e) => setSelectedDomain(e.target.value)}
               aria-label="Filter by Domain"
-              className="bg-surface-raised border border-surface-border text-slate-200 text-xs font-medium rounded-xl px-3 py-2 sm:max-w-[210px] focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="bg-card border border-input text-foreground text-xs font-medium rounded-xl px-3 py-2 sm:max-w-[210px] focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="all">All Domains ({careerRoles.length}+ careers)</option>
+              <option value="all" className="bg-card text-foreground">All Domains ({careerRoles.length}+ careers)</option>
               {domains.map((d) => (
-                <option key={d.slug} value={d.slug}>
+                <option key={d.slug} value={d.slug} className="bg-card text-foreground">
                   {d.name}
                 </option>
               ))}
@@ -162,8 +172,8 @@ export function CareerDestinationStep({
               className={cn(
                 "px-2.5 py-1 rounded-lg font-medium transition-colors shrink-0",
                 selectedDomain === "all"
-                  ? "bg-primary-600 text-white shadow-sm"
-                  : "bg-surface-raised/70 text-slate-400 hover:text-slate-200 border border-surface-border"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-surface-muted text-muted-foreground hover:text-foreground border border-border"
               )}
             >
               All Domains
@@ -176,8 +186,8 @@ export function CareerDestinationStep({
                 className={cn(
                   "px-2.5 py-1 rounded-lg font-medium transition-colors shrink-0",
                   selectedDomain === d.slug
-                    ? "bg-primary-600 text-white shadow-sm"
-                    : "bg-surface-raised/70 text-slate-400 hover:text-slate-200 border border-surface-border"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-surface-muted text-muted-foreground hover:text-foreground border border-border"
                 )}
               >
                 {d.name}
@@ -196,7 +206,7 @@ export function CareerDestinationStep({
         </div>
       ) : displayItems.length === 0 ? (
         <EmptyState
-          icon={<Target className="h-6 w-6 text-slate-400" />}
+          icon={<Target className="h-6 w-6 text-muted-foreground" />}
           title="No matching career found"
           description="You can define a custom destination below or explore another domain filter."
         />
@@ -217,53 +227,53 @@ export function CareerDestinationStep({
                   }).catch(() => {});
                 }}
                 className={cn(
-                  "rounded-2xl border p-4 text-left transition-all duration-150 relative cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+                  "rounded-2xl border p-4 text-left transition-all duration-150 relative cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   isSelected
-                    ? "border-primary-500 bg-primary-950/60 text-white shadow-md shadow-primary-500/10 ring-1 ring-primary-500/50"
-                    : "border-surface-border bg-surface-raised/40 text-slate-300 hover:bg-surface-raised hover:border-slate-600"
+                    ? "border-primary bg-primary/10 text-foreground shadow-md shadow-primary/10 ring-1 ring-primary/50"
+                    : "border-border bg-card text-muted-foreground hover:bg-surface-muted hover:border-border hover:text-foreground"
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                      <span className="inline-block rounded-md bg-surface px-2 py-0.5 text-[10px] font-semibold text-slate-400 border border-surface-border">
+                      <span className="inline-block rounded-md bg-surface-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground border border-border">
                         {item.domain_category}
                       </span>
                       {item.is_regulated && (
-                        <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-400 border border-amber-500/20">
+                        <span className="inline-flex items-center gap-0.5 rounded-md bg-warning/10 px-1.5 py-0.5 text-[9px] font-semibold text-warning border border-warning/20">
                           <ShieldAlert className="h-2.5 w-2.5" /> Regulated
                         </span>
                       )}
                       {item.is_emerging && (
-                        <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-400 border border-emerald-500/20">
+                        <span className="inline-flex items-center gap-0.5 rounded-md bg-success/10 px-1.5 py-0.5 text-[9px] font-semibold text-success border border-success/20">
                           <Sparkles className="h-2.5 w-2.5" /> Emerging
                         </span>
                       )}
                     </div>
-                    <h4 className="text-sm font-bold text-white tracking-tight">{item.role}</h4>
+                    <h4 className="text-sm font-bold text-foreground tracking-tight">{item.role}</h4>
                   </div>
                   {isSelected && (
-                    <CheckCircle2 className="h-4 w-4 text-primary-400 shrink-0 mt-1 animate-in zoom-in duration-150" />
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-1 animate-in zoom-in duration-150" />
                   )}
                 </div>
 
-                <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">
                   {item.description}
                 </p>
 
                 {/* Key Skills Preview */}
                 {item.target_skills && item.target_skills.length > 0 && (
-                  <div className="flex items-center gap-1 flex-wrap mt-2.5 pt-2 border-t border-surface-border/50">
+                  <div className="flex items-center gap-1 flex-wrap mt-2.5 pt-2 border-t border-border/50">
                     {item.target_skills.slice(0, 3).map((s, idx) => (
                       <span
                         key={idx}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-surface text-slate-400 font-mono"
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-surface-muted text-muted-foreground font-mono border border-border"
                       >
                         {s}
                       </span>
                     ))}
                     {item.target_skills.length > 3 && (
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-muted-foreground">
                         +{item.target_skills.length - 3} more
                       </span>
                     )}
@@ -276,8 +286,8 @@ export function CareerDestinationStep({
       )}
 
       {/* Custom Career Definition Option */}
-      <div className="pt-4 border-t border-surface-border">
-        <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+      <div className="pt-4 border-t border-border">
+        <label className="text-xs font-semibold text-foreground block mb-1.5">
           Or define a Custom Technical or Professional Destination
         </label>
         <Input

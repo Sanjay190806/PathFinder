@@ -36,7 +36,9 @@ class WebResearchService:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
             }
-            with httpx.Client(timeout=4.0, follow_redirects=True) as client:
+            # SEC-002: verify=True enforces TLS certificate validation for all HTTPS URLs.
+            # Never set verify=False; MITM attacks would be trivially possible otherwise.
+            with httpx.Client(timeout=4.0, follow_redirects=True, verify=True) as client:
                 resp = client.post(ddg_url, data={"q": q}, headers=headers)
                 if resp.status_code == 200:
                     text = resp.text

@@ -147,7 +147,7 @@ export function IndiaEducationPicker({
     <div className="space-y-5 text-left">
       {/* Step 1: Education Stage Selector */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-primary-400 mb-2">
+        <label className="block text-xs font-bold uppercase tracking-wider text-primary mb-2">
           Step 1: Education Stage (India Framework)
         </label>
         <div
@@ -166,18 +166,18 @@ export function IndiaEducationPicker({
                 className={cn(
                   "p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between group",
                   isSelected
-                    ? "border-primary-500 bg-primary-950/70 text-white shadow-md shadow-primary-500/10 ring-1 ring-primary-500/50"
-                    : "border-surface-border bg-surface-raised/40 text-slate-300 hover:bg-surface-raised hover:text-white"
+                    ? "border-primary bg-primary/10 text-foreground shadow-md ring-1 ring-primary/50"
+                    : "border-border bg-card text-muted-foreground hover:bg-surface-muted hover:text-foreground"
                 )}
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="text-lg">{s.icon}</span>
-                  {isSelected && <Check className="h-3.5 w-3.5 text-primary-400" />}
+                  {isSelected && <Check className="h-3.5 w-3.5 text-primary" />}
                 </div>
                 <div className="mt-1.5">
-                  <div className="text-xs font-bold leading-tight">{s.shortLabel}</div>
+                  <div className="text-xs font-bold leading-tight text-foreground">{s.shortLabel}</div>
                   {!compact && (
-                    <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-1 group-hover:text-slate-300">
+                    <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 group-hover:text-foreground">
                       {s.description}
                     </div>
                   )}
@@ -190,12 +190,12 @@ export function IndiaEducationPicker({
 
       {/* Conditional UI: School Education (Classes 1–10) */}
       {stage === "school" ? (
-        <div className="p-4 rounded-xl border border-surface-border bg-surface-raised/30 space-y-4">
+        <div className="p-4 rounded-xl border border-border bg-card/60 space-y-4">
           <div className="flex items-center gap-2">
             <span className="text-base">🏫</span>
             <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">School Level</h4>
-              <p className="text-[11px] text-slate-400">
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">School Level</h4>
+              <p className="text-[11px] text-muted-foreground">
                 In Classes 1–10, students explore core subjects rather than rigid streams.
               </p>
             </div>
@@ -210,8 +210,8 @@ export function IndiaEducationPicker({
                 className={cn(
                   "p-2 text-xs rounded-lg border text-left font-medium transition-all",
                   schoolLevel === lvl.id
-                    ? "border-primary-500 bg-primary-950/80 text-white"
-                    : "border-surface-border bg-surface text-slate-300 hover:text-white"
+                    ? "border-primary bg-primary text-primary-foreground font-semibold"
+                    : "border-border bg-card text-foreground hover:bg-surface-muted"
                 )}
               >
                 {lvl.label}
@@ -220,7 +220,7 @@ export function IndiaEducationPicker({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-foreground mb-1.5">
               Subject Interests (Select All That Apply):
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -234,8 +234,8 @@ export function IndiaEducationPicker({
                     className={cn(
                       "px-2.5 py-1 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5",
                       checked
-                        ? "border-primary-400 bg-primary-500/20 text-primary-200"
-                        : "border-surface-border bg-surface/50 text-slate-400 hover:text-slate-200"
+                        ? "border-primary bg-primary/10 text-primary font-semibold"
+                        : "border-border bg-surface-muted text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {checked && <Check className="h-3 w-3" />}
@@ -248,14 +248,14 @@ export function IndiaEducationPicker({
         </div>
       ) : (
         /* Hierarchical Selectors for Higher Secondary, College, Diploma, & Working Professionals */
-        <div className="space-y-4 p-4 rounded-xl border border-surface-border bg-surface-raised/30">
+        <div className="space-y-4 p-4 rounded-xl border border-border bg-card/60">
           {/* Step 2: Stream / Domain */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-bold text-foreground mb-1.5 flex items-center justify-between">
                 <span>Step 2: Stream / Domain</span>
                 {activeDomain?.badge && (
-                  <span className="text-[10px] font-semibold text-accent-cyan px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/40">
+                  <span className="text-[10px] font-semibold text-primary px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20">
                     {activeDomain.badge}
                   </span>
                 )}
@@ -266,7 +266,7 @@ export function IndiaEducationPicker({
                 className="w-full text-xs"
               >
                 {availableDomains.map((d) => (
-                  <option key={d.id} value={d.id}>
+                  <option key={d.id} value={d.id} className="bg-card text-foreground">
                     {d.name}
                   </option>
                 ))}
@@ -275,7 +275,7 @@ export function IndiaEducationPicker({
 
             {/* Specific Stream Group (e.g. PCM, PCB, CSE, AI/DS) */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-foreground mb-1.5">
                 Specific Stream / Discipline
               </label>
               <Select
@@ -284,7 +284,7 @@ export function IndiaEducationPicker({
                 className="w-full text-xs"
               >
                 {availableStreams.map((s) => (
-                  <option key={s.id} value={s.id}>
+                  <option key={s.id} value={s.id} className="bg-card text-foreground">
                     {s.name}
                   </option>
                 ))}
@@ -294,7 +294,7 @@ export function IndiaEducationPicker({
 
           {/* Step 3: Specialization */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
+            <label className="block text-xs font-bold text-foreground mb-1.5">
               Step 3: Specialization / Pathway
             </label>
             {activeStream?.specializations && activeStream.specializations.length > 0 ? (
@@ -304,7 +304,7 @@ export function IndiaEducationPicker({
                 className="w-full text-xs"
               >
                 {activeStream.specializations.map((spec) => (
-                  <option key={spec} value={spec}>
+                  <option key={spec} value={spec} className="bg-card text-foreground">
                     {spec}
                   </option>
                 ))}
@@ -315,7 +315,7 @@ export function IndiaEducationPicker({
                 value={specialization}
                 onChange={(e) => setSpecialization(e.target.value)}
                 placeholder="e.g. Artificial Intelligence, VLSI, Data Science"
-                className="w-full px-3 py-2 rounded-xl text-xs bg-surface border border-surface-border text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="w-full px-3 py-2 rounded-xl text-xs bg-card border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             )}
           </div>
@@ -323,7 +323,7 @@ export function IndiaEducationPicker({
           {/* Step 4: Qualification & Step 5: Current Role */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-foreground mb-1.5">
                 Step 4: Current / Highest Qualification
               </label>
               {activeStream?.qualifications && activeStream.qualifications.length > 0 ? (
@@ -333,7 +333,7 @@ export function IndiaEducationPicker({
                   className="w-full text-xs"
                 >
                   {activeStream.qualifications.map((qual) => (
-                    <option key={qual} value={qual}>
+                    <option key={qual} value={qual} className="bg-card text-foreground">
                       {qual}
                     </option>
                   ))}
@@ -344,13 +344,13 @@ export function IndiaEducationPicker({
                   value={qualification}
                   onChange={(e) => setQualification(e.target.value)}
                   placeholder="e.g. B.Tech, B.Sc, Diploma"
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-surface border border-surface-border text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className="w-full px-3 py-2 rounded-xl text-xs bg-card border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-foreground mb-1.5">
                 Step 5: Current Role (SIH26101 Profile)
               </label>
               <Select
@@ -359,7 +359,7 @@ export function IndiaEducationPicker({
                 className="w-full text-xs"
               >
                 {CURRENT_ROLES.map((role) => (
-                  <option key={role} value={role}>
+                  <option key={role} value={role} className="bg-card text-foreground">
                     {role}
                   </option>
                 ))}
@@ -373,7 +373,7 @@ export function IndiaEducationPicker({
             currentRole.includes("Employee") ||
             currentRole.includes("Professional")) && (
             <div>
-              <label className="block text-xs font-bold text-accent-cyan mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-primary mb-1.5 flex items-center gap-1.5">
                 <Building2 className="h-3.5 w-3.5" /> Work Domain (Official Statistics & Industry)
               </label>
               <Select
@@ -382,7 +382,7 @@ export function IndiaEducationPicker({
                 className="w-full text-xs"
               >
                 {WORK_DOMAINS.map((w) => (
-                  <option key={w} value={w}>
+                  <option key={w} value={w} className="bg-card text-foreground">
                     {w}
                   </option>
                 ))}
@@ -397,7 +397,7 @@ export function IndiaEducationPicker({
         <button
           type="button"
           onClick={() => setShowJsonPreview(!showJsonPreview)}
-          className="text-[11px] font-semibold text-primary-400 hover:text-primary-300 flex items-center gap-1 transition-colors"
+          className="text-[11px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
         >
           <Sparkles className="h-3.5 w-3.5" />
           <span>🇮🇳 JanSahay / SIH26101 AI Persona Preview</span>
@@ -405,7 +405,7 @@ export function IndiaEducationPicker({
         </button>
 
         {showJsonPreview && (
-          <div className="mt-2 p-3 rounded-xl bg-slate-950/80 border border-surface-border text-left font-mono text-[11px] text-emerald-400 overflow-x-auto shadow-inner">
+          <div className="mt-2 p-3 rounded-xl bg-card border border-border text-left font-mono text-[11px] text-primary overflow-x-auto shadow-inner">
             <pre>
               {JSON.stringify(
                 {

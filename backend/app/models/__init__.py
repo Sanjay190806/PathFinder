@@ -1,4 +1,4 @@
-from backend.app.models.user import User
+from backend.app.models.user import User, RefreshToken
 from backend.app.models.profile import LearnerProfile
 from backend.app.models.goal import Goal
 from backend.app.models.skill import Skill, SkillPrerequisite, LearnerSkill
@@ -79,6 +79,7 @@ from backend.app.models.dynamic_update import (
 
 __all__ = [
     "User",
+    "RefreshToken",
     "LearnerProfile",
     "Goal",
     "Skill",

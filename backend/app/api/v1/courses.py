@@ -26,13 +26,9 @@ router = APIRouter(prefix="/courses", tags=["Course Syllabus & Assessment Bluepr
 
 
 def _resolve_resource_id(db: Session, course_id_or_slug: str) -> str:
-    """Resolves resource ID by either UUID id or slug."""
-    res = (
-        db.query(LearningResource)
-        .filter((LearningResource.id == course_id_or_slug) | (LearningResource.slug == course_id_or_slug))
-        .first()
-    )
-    return res.id if res else course_id_or_slug
+    """Resolves resource ID by either UUID id or slug, supporting extended catalog items."""
+    engine = SyllabusEngine(db)
+    return engine._resolve_course_id(course_id_or_slug)
 
 
 def _build_syllabus_detail(syllabus: CourseSyllabus) -> CourseSyllabusDetailOut:
@@ -115,6 +111,8 @@ def list_course_syllabus_versions(
     """Lists all historical and active syllabus versions for a course."""
     actual_course_id = _resolve_resource_id(db, course_id)
     engine = SyllabusEngine(db)
+    # Ensure active syllabus is provisioned first so versions list is populated for valid courses
+    engine.get_active_syllabus(actual_course_id)
     return engine.list_syllabus_versions(actual_course_id)
 
 
@@ -128,6 +126,8 @@ def get_course_syllabus_version(
     actual_course_id = _resolve_resource_id(db, course_id)
     engine = SyllabusEngine(db)
     syllabus = engine.get_syllabus_by_version(actual_course_id, version)
+    if not syllabus and version == 1:
+        syllabus = engine.get_active_syllabus(actual_course_id)
     
     if not syllabus:
         raise HTTPException(

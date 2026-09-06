@@ -551,3 +551,128 @@ def test_stage1_13_ai_extract_api_endpoint():
     assert data["is_ai_assisted"] is True
     assert data["syllabus_proposal"]["source"] == "AI_ASSISTED_EXTRACTION"
     assert len(data["syllabus_proposal"]["modules"]) == 2
+
+
+# ============================================================================
+# 14. UI/UX Designer Multi-Course Syllabus Verification
+# ============================================================================
+
+def test_stage1_14_ui_ux_designer_syllabus_support(test_db):
+    engine = SyllabusEngine(test_db)
+
+    # 1. CalArts Graphic Design & Typography
+    calarts = engine.get_active_syllabus("calarts-graphic-design-typography")
+    assert calarts is not None
+    assert "Typography" in calarts.title or "CalArts" in calarts.title
+    assert calarts.validation_status == "VALID"
+    assert len(calarts.modules) == 4
+    total_mod_weight = sum(m.weight for m in calarts.modules)
+    assert abs(total_mod_weight - 100.0) < 0.5
+    for m in calarts.modules:
+        topic_sum = sum(t.weight for t in m.topics)
+        assert abs(topic_sum - 100.0) < 0.5
+
+    # 2. Query by course ID (UUID) through API endpoint
+    res = test_db.query(LearningResource).filter(LearningResource.slug == "calarts-graphic-design-typography").first()
+    assert res is not None
+    api_res = client.get(f"/api/v1/courses/{res.id}/syllabus")
+    assert api_res.status_code == 200
+    syl_data = api_res.json()
+    assert syl_data["id"] == calarts.id
+    assert syl_data["total_modules"] == 4
+
+    # 3. Google UX Design Certificate
+    g_syl = engine.get_active_syllabus("google-ux-design-specialization")
+    assert g_syl is not None
+    assert g_syl.validation_status == "VALID"
+    assert len(g_syl.modules) == 4
+
+    # 4. Figma UI/UX Design Masterclass
+    f_syl = engine.get_active_syllabus("figma-ui-ux-design-masterclass")
+    assert f_syl is not None
+    assert f_syl.validation_status == "VALID"
+    assert len(f_syl.modules) == 3
+
+
+# ============================================================================
+# 15. Universal Fallback & Extended Catalog Auto-Synthesis
+# ============================================================================
+
+def test_stage1_15_universal_fallback_and_extended_registry(test_db):
+    auth = get_demo_auth()
+
+    # 1. Query extended registry resource by ID
+    res = client.get("/api/v1/courses/res-ext-nptel-py/syllabus")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["total_modules"] == 4
+    assert data["is_active"] is True
+    assert data["total_estimated_hours"] > 0
+
+    # 2. Coverage calculation on auto-synthesized course
+    cov_res = client.get("/api/v1/courses/res-ext-nptel-py/syllabus/coverage", headers=auth)
+    assert cov_res.status_code == 200
+    cov_data = cov_res.json()
+    assert cov_data["total_modules"] == 4
+    assert cov_data["course_state"] in ("NOT_STARTED", "IN_PROGRESS", "ASSESSMENT_READY")
+
+    # 3. Dynamic course without any pre-defined template
+    unique_slug = f"dynamic-course-{uuid.uuid4().hex[:6]}"
+    dyn_res = LearningResource(
+        id=str(uuid.uuid4()),
+        title="Custom Advanced Autonomous Robotics",
+        slug=unique_slug,
+        description="Path planning, SLAM algorithms, and kinematics.",
+        provider="Robotics Institute",
+        url=f"https://example.com/courses/{unique_slug}",
+        resource_type="course",
+        difficulty="Advanced",
+        estimated_hours=20.0
+    )
+    test_db.add(dyn_res)
+    test_db.commit()
+
+    # Fetch syllabus - engine must dynamically synthesize a valid 4-module syllabus
+    dyn_syl_res = client.get(f"/api/v1/courses/{unique_slug}/syllabus")
+    assert dyn_syl_res.status_code == 200
+    dyn_syl = dyn_syl_res.json()
+    assert dyn_syl["total_modules"] == 4
+    assert dyn_syl["total_topics"] == 8
+    assert dyn_syl["validation_status"] == "VALID"
+
+
+# ============================================================================
+# 16. Verified Course Catalog & Arbitrary UUID Universal Fallback
+# ============================================================================
+
+def test_stage1_16_verified_course_catalog_and_arbitrary_uuid_fallback(test_db):
+    auth = get_demo_auth()
+
+    # 1. UI/UX course from VERIFIED_COURSE_CATALOG by ID
+    res = client.get("/api/v1/courses/crs-des-calarts/syllabus")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["total_modules"] == 4
+    assert data["is_active"] is True
+    assert "Design" in data["title"] or "CalArts" in data["title"]
+
+    # 2. DSA course from VERIFIED_COURSE_CATALOG by slug
+    res = client.get("/api/v1/courses/mit-6006-intro-algorithms/syllabus")
+    assert res.status_code == 200
+    assert res.json()["total_modules"] >= 3
+
+    # 3. Completely arbitrary UUID (simulating user screenshot navigation)
+    random_uuid = str(uuid.uuid4())
+    res = client.get(f"/api/v1/courses/{random_uuid}/syllabus")
+    assert res.status_code == 200
+    arb_data = res.json()
+    assert arb_data["total_modules"] == 4
+    assert arb_data["total_topics"] == 8
+    assert arb_data["validation_status"] == "VALID"
+
+    # 4. Coverage calculation for arbitrary UUID
+    cov_res = client.get(f"/api/v1/courses/{random_uuid}/syllabus/coverage", headers=auth)
+    assert cov_res.status_code == 200
+    assert cov_res.json()["total_modules"] == 4
+
+

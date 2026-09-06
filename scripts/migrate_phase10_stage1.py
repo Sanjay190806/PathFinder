@@ -182,6 +182,11 @@ def seed_syllabuses():
         new_syl, is_val, errs = engine.create_syllabus(py_syl)
         print(f"Seeded syllabus for 'python-data-science-bootcamp' (Version: {new_syl.version}, Valid: {is_val})")
 
+    # 3. Ensure ALL resources across all domains have active syllabi
+    print("--- Ensuring all remaining resources have active syllabi ---")
+    new_count = engine.ensure_all_resources_have_syllabi()
+    print(f"Provisioned active syllabi for {new_count} courses across all domains.")
+
     db.close()
     print("--- Phase 10 Stage 1 Syllabus Seeding Completed ---")
 

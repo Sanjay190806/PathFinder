@@ -249,29 +249,29 @@ export function IntegrityMonitoringWidget({
       {/* 1. Explicit Consent Modal */}
       {showConsentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl text-left">
+          <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl text-left">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+              <div className="p-3 rounded-xl bg-primary/10 text-primary border border-primary/20">
                 <Shield className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Assessment Integrity Monitoring</h3>
-                <p className="text-xs text-slate-400">Privacy-first, assistive supervision</p>
+                <h3 className="text-lg font-bold text-foreground">Assessment Integrity Monitoring</h3>
+                <p className="text-xs text-muted-foreground">Privacy-first, assistive supervision</p>
               </div>
             </div>
 
-            <div className="space-y-3 text-sm text-slate-300 mb-6 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <div className="space-y-3 text-sm text-muted-foreground mb-6 bg-muted/50 p-4 rounded-xl border border-border">
               <div className="flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                <span><strong>No Video Storage:</strong> Your camera stream is processed locally in your browser. No raw video or images are recorded or stored on any server.</span>
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                <span><strong className="text-foreground">No Video Storage:</strong> Your camera stream is processed locally in your browser. No raw video or images are recorded or stored on any server.</span>
               </div>
               <div className="flex items-start gap-2">
-                <Lock className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
-                <span><strong>Bounded Lifecycle:</strong> Camera monitoring begins only after your consent and stops automatically when the exam is submitted, paused, or exited.</span>
+                <Lock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <span><strong className="text-foreground">Bounded Lifecycle:</strong> Camera monitoring begins only after your consent and stops automatically when the exam is submitted, paused, or exited.</span>
               </div>
               <div className="flex items-start gap-2">
-                <Smartphone className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                <span><strong>Supportive Reminders:</strong> If you step away or an unauthorized device (phone/tablet) is detected, you will receive calm guidance to stay in frame.</span>
+                <Smartphone className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <span><strong className="text-foreground">Supportive Reminders:</strong> If you step away or an unauthorized device (phone/tablet) is detected, you will receive calm guidance to stay in frame.</span>
               </div>
             </div>
 
@@ -280,19 +280,19 @@ export function IntegrityMonitoringWidget({
                 <button
                   type="button"
                   onClick={() => handleConsentDecision(false)}
-                  className="px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-medium transition"
+                  className="px-4 py-2.5 rounded-lg border border-border hover:bg-muted text-foreground text-sm font-medium transition"
                 >
                   Continue Without Camera
                 </button>
               ) : (
-                <span className="text-xs text-amber-400/90 italic">
+                <span className="text-xs text-amber-700 dark:text-amber-400/90 font-medium italic">
                   Camera supervision is required for this certified assessment.
                 </span>
               )}
               <button
                 type="button"
                 onClick={() => handleConsentDecision(true)}
-                className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 transition flex items-center gap-2"
+                className="px-5 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold shadow-md transition flex items-center gap-2"
               >
                 <Camera className="w-4 h-4" />
                 Enable Camera & Begin

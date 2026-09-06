@@ -27,8 +27,15 @@ class DSAService:
         domain_slug: Optional[str] = None,
         difficulty: Optional[str] = None,
         search: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 200,
     ) -> List[Dict[str, Any]]:
-        """Lists all 28 topics with concept counts and difficulty breakdowns."""
+        """Lists all 28 topics with concept counts and difficulty breakdowns.
+
+        API-003: page/page_size added to support frontend pagination.
+        Default page_size=200 preserves backward compatibility (all topics returned
+        when params are omitted, since there are only 28 canonical topics).
+        """
         query = (
             db.query(DSATopic)
             .options(
@@ -50,7 +57,14 @@ class DSAService:
                 )
             )
 
-        topics = query.order_by(DSATopic.order.asc()).all()
+        # Apply pagination (offset/limit) after all filters
+        offset = (max(1, page) - 1) * max(1, page_size)
+        topics = (
+            query.order_by(DSATopic.order.asc())
+            .offset(offset)
+            .limit(page_size)
+            .all()
+        )
 
         results = []
         for t in topics:

@@ -25,7 +25,20 @@ INJECTION_PATTERNS = [
     r"bypass (safety|guidelines)",
     r"dan mode|jailbreak|unrestricted mode",
     r"dump (the |all |entire )*(database|users|tables|credentials|salaries)",
-    r"you are now unrestricted|pretend you have no rules"
+    r"you are now unrestricted|pretend you have no rules",
+    # SEC-002: Backtick / code-fence injection — attackers may wrap override instructions
+    # in Markdown code fences to bypass plain-text pattern matching.
+    r"`[^`]*ignore[^`]*(rules|instructions)[^`]*`",
+    r"`[^`]*disregard[^`]*(rules|instructions)[^`]*`",
+    r"`[^`]*system override[^`]*`",
+    r"`[^`]*act as[^`]*(admin|root|unrestricted)[^`]*`",
+    r"```[^`]*ignore[^`]*(rules|instructions)[^`]*```",
+    r"```[^`]*system override[^`]*```",
+    r"```[^`]*jailbreak[^`]*```",
+    # Role-switch via explicit persona substitution
+    r"new persona[:\s]+",
+    r"you are now[:\s]+(a )?(different|new|unrestricted|evil|admin)",
+    r"switch (to |your )?(admin|root|developer|unrestricted) mode",
 ]
 
 class PromptGuard:

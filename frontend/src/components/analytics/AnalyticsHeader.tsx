@@ -12,7 +12,7 @@ export function AnalyticsHeader({ profile, onOpenAssistant }: AnalyticsHeaderPro
   const targetRole = profile?.primary_goal?.target_role;
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-border">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
       <div>
         <div className="flex items-center gap-2 mb-1">
           <Badge variant="cyan" size="sm">
@@ -28,10 +28,10 @@ export function AnalyticsHeader({ profile, onOpenAssistant }: AnalyticsHeaderPro
             </Badge>
           )}
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
           Competency Growth & Mastery
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
           Quantitative telemetry evaluating your curriculum progression, verified skill confidence, and pace.
         </p>
       </div>
@@ -41,7 +41,7 @@ export function AnalyticsHeader({ profile, onOpenAssistant }: AnalyticsHeaderPro
           variant="secondary"
           size="sm"
           onClick={onOpenAssistant}
-          leftIcon={<Sparkles className="h-3.5 w-3.5 text-accent-cyan" />}
+          leftIcon={<Sparkles className="h-3.5 w-3.5 text-primary" />}
         >
           AI Career Coach
         </Button>

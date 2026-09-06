@@ -40,7 +40,18 @@ class ResourceDiscoveryEngine:
             seen_keys.add(dedup_key)
             merged.append(r)
 
-        # 2. Database resources (if db session active)
+        # 2. iGOT authoritative courses from adapter
+        try:
+            from backend.app.providers.igot_adapter import IGOTProviderAdapter
+            for igot_res in IGOTProviderAdapter().discover_courses():
+                dedup_key = f"igot karmayogi::{igot_res.get('external_id', '') or self.normalize_url(igot_res['url'])}"
+                if dedup_key not in seen_keys:
+                    seen_keys.add(dedup_key)
+                    merged.append(igot_res)
+        except Exception:
+            pass
+
+        # 3. Database resources (if db session active)
         if self.db:
             try:
                 db_res = self.db.query(LearningResource).all()
@@ -56,6 +67,12 @@ class ResourceDiscoveryEngine:
                         "title": dr.title,
                         "slug": dr.slug,
                         "provider": dr.provider,
+                        "provider_id": getattr(dr, "provider_id", None) or "generic_provider",
+                        "source_platform": getattr(dr, "source_platform", None) or "GENERIC",
+                        "competencies": getattr(dr, "competencies", None) or [],
+                        "topics": getattr(dr, "topics", None) or [],
+                        "retrieved_at": getattr(dr, "retrieved_at", None) or datetime.now(timezone.utc),
+                        "freshness": getattr(dr, "freshness", None) or "FRESH",
                         "url": dr.url,
                         "resource_type": dr.resource_type,
                         "difficulty": dr.difficulty,
@@ -93,46 +110,84 @@ class ResourceDiscoveryEngine:
         difficulty: Optional[str] = None,
         resource_type: Optional[str] = None,
         provider: Optional[str] = None,
+        source_tier: Optional[int] = None,
+        competency: Optional[str] = None,
+        free_only: bool = False,
         learner_profile: Optional[LearnerProfile] = None
     ) -> List[ResourceDiscoveryOut]:
         """
         Executes multi-dimensional filtering, ranking, and explainable scoring.
+        Source-agnostic: balances Government/iGOT authority, tech vendor rigor,
+        skill gap matches, and career domain context.
         """
         all_resources = self.get_all_catalog_resources()
         target_lang = (language or (learner_profile.preferred_language if learner_profile else None) or "English").strip()
 
         # Retrieve learner's active skill gaps if profile provided
         active_gaps: Set[str] = set()
+        learner_career: Optional[str] = None
         if learner_profile and self.db:
             try:
                 gap_engine = CareerSkillGapEngine(self.db)
                 gap_report = gap_engine.calculate_skill_gaps(learner_profile.id)
                 active_gaps = {g["skill_slug"].lower() for g in gap_report.get("gaps", [])}
+                if learner_profile.goals:
+                    primary_goal = next((g for g in learner_profile.goals if g.is_primary), learner_profile.goals[0])
+                    if primary_goal and primary_goal.target_role:
+                        learner_career = primary_goal.target_role.lower().replace(" ", "-")
             except Exception:
                 pass
+
+        effective_career = (career_slug or learner_career or "").lower()
 
         scored_candidates: List[tuple[float, Dict[str, Any], List[str], bool, bool]] = []
 
         for r in all_resources:
-            # 1. Hard filters
-            if provider and provider.lower() not in r["provider"].lower():
-                continue
-            if resource_type and resource_type.lower() != r["resource_type"].lower():
-                continue
-            if difficulty and difficulty.lower() != r["difficulty"].lower():
-                continue
-            if skill_slug and skill_slug.lower() not in [s.lower() for s in r.get("skills", [])]:
-                continue
-            if career_slug and career_slug.lower() not in [c.lower() for c in r.get("career_relevance", [])]:
-                # If career specified, allow high general skill matches or direct relevance
-                if not any(s in active_gaps for s in r.get("skills", [])):
+            # 1. Provider filter (matches provider name, provider_id, or source_platform)
+            if provider:
+                pq = provider.lower().strip()
+                prov_match = (
+                    pq in r.get("provider", "").lower()
+                    or pq == r.get("provider_id", "").lower()
+                    or pq == r.get("source_platform", "").lower()
+                )
+                if not prov_match:
                     continue
 
-            # 2. Strict Price Filter
+            # 2. Source Tier filter
+            if source_tier is not None and r.get("source_tier") != source_tier:
+                continue
+
+            # 3. Resource type and difficulty
+            if resource_type and resource_type.lower() != r.get("resource_type", "").lower():
+                continue
+            if difficulty and difficulty.lower() != "all" and difficulty.lower() != r.get("difficulty", "").lower():
+                continue
+
+            # 4. Skill filter
+            r_skills = [s.lower() for s in r.get("skills", [])]
+            if skill_slug and skill_slug.lower() not in r_skills:
+                continue
+
+            # 5. Competency filter
+            if competency:
+                cq = competency.lower().strip()
+                comp_match = any(cq in c.lower() for c in r.get("competencies", [])) or any(cq in t.lower() for t in r.get("topics", []))
+                if not comp_match:
+                    continue
+
+            # 6. Career relevance filter (relaxed if skills directly match active gap)
+            if effective_career and effective_career not in [c.lower() for c in r.get("career_relevance", [])]:
+                if not any(s in active_gaps for s in r_skills):
+                    continue
+
+            # 7. Price Filter
+            if free_only and not r.get("free_learning", False):
+                continue
+
             if price_filter:
                 p_filter = price_filter.upper()
                 if p_filter == "FREE":
-                    # Free filter includes ONLY Genuinely Free, YouTube Free, and Free-to-enroll
                     if r["price_type"] not in ("GENUINELY_FREE", "YOUTUBE_FREE_CONTENT", "FREE_TO_ENROLL_PAID_CERTIFICATE"):
                         continue
                 elif p_filter == "GENUINELY_FREE":
@@ -142,7 +197,7 @@ class ResourceDiscoveryEngine:
                     if r["price_type"] not in ("PAID", "SUBSCRIPTION_REQUIRED"):
                         continue
 
-            # 3. Multi-Signal Ranking
+            # 8. Deterministic Multi-Signal Ranking Formula
             base_score = float(r.get("quality_score", 0.90))
             reasons: List[str] = []
             is_preferred_lang = False
@@ -151,37 +206,44 @@ class ResourceDiscoveryEngine:
             # Language match boost
             r_lang = r.get("language", "English")
             if target_lang.lower() == r_lang.lower():
-                base_score += 0.25
+                base_score += 0.20
                 is_preferred_lang = True
                 reasons.append(f"Taught directly in your preferred language ({r_lang})")
             elif target_lang.lower() != "english" and r_lang.lower() == "english":
-                # Fallback to English available
                 base_score += 0.05
                 reasons.append("English baseline resource available")
 
             # Skill Gap match boost
-            matched_gaps = [s for s in r.get("skills", []) if s.lower() in active_gaps]
+            matched_gaps = [s for s in r_skills if s in active_gaps]
             if matched_gaps:
                 base_score += 0.35
                 is_gap_match = True
                 reasons.append(f"Directly resolves your identified skill gap: {', '.join(matched_gaps)}")
-            elif skill_slug and skill_slug.lower() in [s.lower() for s in r.get("skills", [])]:
-                base_score += 0.20
+            elif skill_slug and skill_slug.lower() in r_skills:
+                base_score += 0.25
                 reasons.append(f"Directly covers requested target skill: {skill_slug}")
 
             # Career Alignment
-            if career_slug and career_slug.lower() in [c.lower() for c in r.get("career_relevance", [])]:
+            if effective_career and effective_career in [c.lower() for c in r.get("career_relevance", [])]:
                 base_score += 0.15
-                reasons.append("Specifically engineered for this career path")
+                reasons.append("Specifically engineered for your target career role")
 
-            # Source Tier Boost & Verification
+            # Source Tier Authority & Provider Trust
             tier = r.get("source_tier", 3)
-            if tier == 1:
+            pid = r.get("provider_id", "").lower()
+            if pid == "igot_karmayogi" or "igot" in r.get("provider", "").lower():
+                base_score += 0.12
+                reasons.append("Official Government of India national learning platform (iGOT Karmayogi)")
+                # Public sector / governance synergy boost
+                if any(k in effective_career for k in ("gov", "policy", "admin", "public", "civil")):
+                    base_score += 0.20
+                    reasons.append("High-priority curriculum directly aligned with public sector leadership & governance standards")
+            elif tier == 1:
                 base_score += 0.10
-                reasons.append("Institutional Indian curriculum (NPTEL / SWAYAM)")
+                reasons.append("Institutional university curriculum (NPTEL / SWAYAM)")
             elif tier == 2:
-                base_score += 0.08
-                reasons.append("Official tech provider curriculum")
+                base_score += 0.09
+                reasons.append(f"Official {r.get('provider')} enterprise technology curriculum")
             elif tier == 4:
                 reasons.append("Verified high-engagement YouTube educational series")
 
@@ -191,7 +253,7 @@ class ResourceDiscoveryEngine:
             elif r["price_type"] == "FREE_TO_ENROLL_PAID_CERTIFICATE":
                 reasons.append("Free learning access with optional paid proctored exam")
             elif r["price_type"] == "YOUTUBE_FREE_CONTENT":
-                reasons.append("Publicly accessible free YouTube video series")
+                reasons.append("Publicly accessible free educational video series")
 
             scored_candidates.append((base_score, r, reasons, is_preferred_lang, is_gap_match))
 
@@ -206,6 +268,12 @@ class ResourceDiscoveryEngine:
                 slug=r["slug"],
                 description=r.get("description", ""),
                 provider=r["provider"],
+                provider_id=r.get("provider_id") or "generic_provider",
+                source_platform=r.get("source_platform") or "GENERIC",
+                competencies=r.get("competencies") or [],
+                topics=r.get("topics") or [],
+                retrieved_at=r.get("retrieved_at"),
+                freshness=r.get("freshness", "FRESH"),
                 url=r["url"],
                 resource_type=r["resource_type"],
                 difficulty=r["difficulty"],
@@ -235,3 +303,56 @@ class ResourceDiscoveryEngine:
             ))
 
         return results
+
+    def get_diagnostics(self) -> Dict[str, Any]:
+        """Provides authoritative data quality diagnostics for multi-source learning resources."""
+        all_res = self.get_all_catalog_resources()
+        tier_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+        status_counts = {"VERIFIED": 0, "STALE": 0, "EXPIRED": 0, "UNVERIFIED": 0}
+        provider_counts: Dict[str, int] = {}
+        igot_metrics = {
+            "total_courses": 0,
+            "verified_courses": 0,
+            "official_domains": ["igotkarmayogi.gov.in", "portal.igotkarmayogi.gov.in"],
+            "mapped_competencies": 0,
+            "status": "HEALTHY"
+        }
+
+        try:
+            from backend.app.resources.taxonomy_mapper import IGOT_COMPETENCY_TO_CANONICAL_SKILLS
+            igot_metrics["mapped_competencies"] = len(IGOT_COMPETENCY_TO_CANONICAL_SKILLS)
+        except Exception:
+            pass
+
+        for r in all_res:
+            t = int(r.get("source_tier", 3))
+            tier_counts[t] = tier_counts.get(t, 0) + 1
+
+            v = r.get("verification_status", "UNVERIFIED")
+            status_counts[v] = status_counts.get(v, 0) + 1
+
+            p = r.get("provider", "Unknown")
+            provider_counts[p] = provider_counts.get(p, 0) + 1
+
+            pid = (r.get("provider_id") or "").lower()
+            if pid == "igot_karmayogi" or "igot" in p.lower() or "karmayogi" in p.lower():
+                igot_metrics["total_courses"] += 1
+                if v == "VERIFIED":
+                    igot_metrics["verified_courses"] += 1
+
+        return {
+            "total_resources": len(all_res),
+            "total_learning_resources": len(all_res),
+            "igot_resources_count": igot_metrics["total_courses"],
+            "by_tier": {
+                "tier_1": tier_counts.get(1, 0),
+                "tier_2": tier_counts.get(2, 0),
+                "tier_3": tier_counts.get(3, 0),
+                "tier_4": tier_counts.get(4, 0)
+            },
+            "source_tiers": tier_counts,
+            "verification_breakdown": status_counts,
+            "providers_distribution": provider_counts,
+            "igot_karmayogi": igot_metrics,
+            "diagnostics_timestamp": datetime.now(timezone.utc).isoformat()
+        }

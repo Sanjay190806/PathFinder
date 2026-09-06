@@ -40,6 +40,18 @@ class AdaptiveEngine:
         goal = self.db.query(Goal).filter(Goal.profile_id == profile.id, Goal.is_primary == True).first()
         if not goal:
             goal = self.db.query(Goal).filter(Goal.profile_id == profile.id).first()
+        if not goal:
+            import uuid
+            goal = Goal(
+                id=str(uuid.uuid4()),
+                profile_id=profile.id,
+                title="Software Engineer Career Path",
+                target_role="Software Engineer",
+                is_primary=True,
+                status="IN_PROGRESS"
+            )
+            self.db.add(goal)
+            self.db.flush()
 
         # 2. Process Event with Idempotency
         event_res = self.event_processor.process(

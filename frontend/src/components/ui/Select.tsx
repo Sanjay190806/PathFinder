@@ -14,7 +14,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={selectId} className="block text-xs font-semibold text-slate-300">
+          <label htmlFor={selectId} className="block text-xs font-semibold text-foreground/90">
             {label}
           </label>
         )}
@@ -22,8 +22,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           id={selectId}
           ref={ref}
           className={cn(
-            "w-full rounded-xl bg-surface-raised border border-surface-border px-3.5 py-2.5 text-sm text-white transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-50",
-            errorMessage ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : "",
+            "w-full rounded-xl bg-card border border-input px-3.5 py-2.5 text-sm text-foreground transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50",
+            errorMessage ? "border-destructive focus:border-destructive focus:ring-destructive" : "",
             className
           )}
           {...props}
@@ -31,9 +31,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           {children}
         </select>
         {errorMessage ? (
-          <p className="text-xs text-rose-400 mt-1">{errorMessage}</p>
+          <p className="text-xs text-destructive mt-1">{errorMessage}</p>
         ) : helperText ? (
-          <p className="text-xs text-slate-400 mt-1">{helperText}</p>
+          <p className="text-xs text-muted-foreground mt-1">{helperText}</p>
         ) : null}
       </div>
     );

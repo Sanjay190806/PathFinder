@@ -57,10 +57,24 @@ def get_dsa_topics(
     domain_slug: Optional[str] = Query(None, description="Filter by domain slug"),
     difficulty: Optional[str] = Query(None, description="Filter concepts by difficulty: EASY, MEDIUM, HARD"),
     search: Optional[str] = Query(None, description="Search topics by keyword"),
+    # API-003: Pagination parameters (page/page_size). Default page_size=200 returns all
+    # 28 canonical topics in one request when not specified, preserving backward compat.
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    page_size: int = Query(200, ge=1, le=500, description="Items per page"),
     db: Session = Depends(get_db),
 ):
-    """Retrieves all 28 canonical DSA topics with concept counts and difficulty breakdowns."""
-    return DSAService.list_topics(db, domain_slug=domain_slug, difficulty=difficulty, search=search)
+    """Retrieves canonical DSA topics with concept counts and difficulty breakdowns.
+
+    Supports optional pagination via page/page_size query parameters.
+    """
+    return DSAService.list_topics(
+        db,
+        domain_slug=domain_slug,
+        difficulty=difficulty,
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/topics/{topic_slug}", response_model=DSATopicDetail)

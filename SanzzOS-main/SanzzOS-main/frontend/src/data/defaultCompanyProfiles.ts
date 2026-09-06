@@ -1,0 +1,67 @@
+import { CompanyProfile } from '../types/companyIntelligence';
+
+export const DEFAULT_COMPANY_PROFILES: CompanyProfile[] = [
+  {
+    id: 'c-zoho',
+    name: 'Zoho',
+    category: 'Product-based',
+    targetRoles: ['SWE Intern', 'Product Intern'],
+    preparationPriority: 'high',
+    generalHiringFocus: 'Java coding, OOPS, DSA, Database relations, and structured communication.',
+    rounds: [
+      { name: 'Coding Round 1', focus: 'Basic loops, array manipulation, matrix patterns', difficulty: 'medium' },
+      { name: 'Coding Round 2', focus: 'Java collections, basic data structures implementation', difficulty: 'hard' },
+      { name: 'Technical Interview', focus: 'OOPS, Database normalizations, explain projects', difficulty: 'medium' },
+    ],
+    oaFocus: ['Programming Arrays', 'String Manipulation', 'Basic DSA'],
+    interviewFocus: ['OOP Principles', 'SQL Queries', 'Project explanation'],
+    skillsToPrepare: ['Java', 'OOPS', 'SQL', 'DSA'],
+    resumeEmphasis: 'Hands-on projects, backend architectures.',
+    projectEmphasis: 'Sanju Career OS, custom local database designs.',
+    readinessScore: 0,
+    notes: '',
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'c-fractal',
+    name: 'Fractal Analytics',
+    category: 'Analytics',
+    targetRoles: ['Data Analyst Intern', 'Business Analyst Intern'],
+    preparationPriority: 'high',
+    generalHiringFocus: 'SQL joins, Python pandas, statistical metrics, case study logic.',
+    rounds: [
+      { name: 'OA Assessment', focus: 'SQL queries, aptitude, logical reasoning', difficulty: 'medium' },
+      { name: 'Technical Interview', focus: 'Explain ML models, SQL complex joins, PowerBI/Excel', difficulty: 'medium' },
+    ],
+    oaFocus: ['SQL Joins', 'Aggregations', 'Quantitative Aptitude'],
+    interviewFocus: ['SQL Queries', 'Statistics', 'CareSync AI metrics'],
+    skillsToPrepare: ['SQL', 'Python Pandas', 'Statistics', 'Excel'],
+    resumeEmphasis: 'Data visualization, analytics models.',
+    projectEmphasis: 'Analytics project proof, SQL case studies, and measurable dashboards.',
+    readinessScore: 0,
+    notes: '',
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'c-accenture',
+    name: 'Accenture',
+    category: 'Service-based',
+    targetRoles: ['SWE Intern', 'Associate Software Engineer'],
+    preparationPriority: 'medium',
+    generalHiringFocus: 'Quantitative aptitude, basic coding, pseudo-code, communication check.',
+    rounds: [
+      { name: 'Cognitive & Technical OA', focus: 'Aptitude, MS Office, Pseudocode, Networking', difficulty: 'easy' },
+      { name: 'Coding Round', focus: '2 basic coding challenges (arrays/strings)', difficulty: 'medium' },
+      { name: 'HR/Communication round', focus: 'Self-intro, story-telling, behavioral questions', difficulty: 'easy' },
+    ],
+    oaFocus: ['Pseudocode', 'Aptitude', 'Basic SQL'],
+    interviewFocus: ['Self Introduction', 'Resume explanation', 'Basic Java OOPS'],
+    skillsToPrepare: ['Aptitude', 'Java Basics', 'SQL Basics', 'Communication'],
+    resumeEmphasis: 'Full stack projects, certs, hackathons.',
+    projectEmphasis: 'Clear full-stack project walkthroughs and communication proof.',
+    readinessScore: 0,
+    notes: '',
+    lastUpdated: new Date().toISOString(),
+  }
+];
+export default DEFAULT_COMPANY_PROFILES;

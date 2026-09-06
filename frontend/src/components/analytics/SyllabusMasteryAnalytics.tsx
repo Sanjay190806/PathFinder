@@ -15,15 +15,15 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
   const getSignalBadge = (signal: string) => {
     switch (signal) {
       case "HIGH_MASTERY":
-        return "bg-emerald-950/80 text-emerald-400 border-emerald-800/50";
+        return "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30";
       case "PROFICIENT":
-        return "bg-blue-950/80 text-blue-400 border-blue-800/50";
+        return "bg-blue-500/10 text-blue-800 dark:text-blue-300 border-blue-500/30";
       case "DEVELOPING":
-        return "bg-amber-950/80 text-amber-400 border-amber-800/50";
+        return "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30";
       case "NEEDS_REVISION":
-        return "bg-red-950/80 text-red-400 border-red-800/50";
+        return "bg-red-500/10 text-red-800 dark:text-red-300 border-red-500/30";
       default:
-        return "bg-slate-800 text-slate-400 border-slate-700";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
@@ -31,19 +31,19 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
     <Card variant="default" className="p-5 space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <Layers className="h-5 w-5 text-cyan-400" />
+          <Layers className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
           <div>
-            <h3 className="text-base font-bold text-white">Syllabus-Based Assessment Mastery</h3>
-            <p className="text-xs text-slate-400">Granular performance calculated from authoritative question evidence</p>
+            <h3 className="text-base font-bold text-foreground">Syllabus-Based Assessment Mastery</h3>
+            <p className="text-xs text-muted-foreground">Granular performance calculated from authoritative question evidence</p>
           </div>
         </div>
 
         {/* Tab Controls */}
-        <div className="flex items-center p-1 bg-surface-raised rounded-lg border border-surface-border text-xs font-medium self-start sm:self-auto">
+        <div className="flex items-center p-1 bg-muted rounded-lg border border-border text-xs font-medium self-start sm:self-auto">
           <button
             onClick={() => setActiveTab('modules')}
             className={`px-3 py-1 rounded-md transition-all ${
-              activeTab === 'modules' ? 'bg-primary-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+              activeTab === 'modules' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Modules ({syllabusData?.modules.length || 0})
@@ -51,7 +51,7 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
           <button
             onClick={() => setActiveTab('topics')}
             className={`px-3 py-1 rounded-md transition-all ${
-              activeTab === 'topics' ? 'bg-primary-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+              activeTab === 'topics' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Topics ({syllabusData?.topics.length || 0})
@@ -59,7 +59,7 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
           <button
             onClick={() => setActiveTab('objectives')}
             className={`px-3 py-1 rounded-md transition-all ${
-              activeTab === 'objectives' ? 'bg-primary-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+              activeTab === 'objectives' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Objectives ({syllabusData?.learning_objectives.length || 0})
@@ -68,10 +68,10 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
       </div>
 
       {!syllabusData || !syllabusData.has_data ? (
-        <div className="p-8 text-center text-slate-400 bg-surface-raised/40 rounded-xl border border-surface-border">
-          <Target className="h-8 w-8 mx-auto text-slate-500 mb-2" />
-          <p className="text-sm font-semibold text-white">No syllabus assessment evidence recorded yet.</p>
-          <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+        <div className="p-8 text-center text-muted-foreground bg-muted/50 rounded-xl border border-border">
+          <Target className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+          <p className="text-sm font-semibold text-foreground">No syllabus assessment evidence recorded yet.</p>
+          <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
             Take an authoritative course exam to view module, topic, and learning-objective accuracy breakdowns.
           </p>
         </div>
@@ -83,19 +83,19 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
               {syllabusData.modules.map((m) => (
                 <div
                   key={m.module_id}
-                  className="p-3.5 rounded-xl bg-surface-raised/60 border border-surface-border space-y-2.5"
+                  className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-2.5"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm font-bold text-white line-clamp-1">{m.module_title}</span>
+                    <span className="text-sm font-bold text-foreground line-clamp-1">{m.module_title}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase shrink-0 ${getSignalBadge(m.mastery_signal)}`}>
                       {m.mastery_signal.replace('_', ' ')}
                     </span>
                   </div>
 
                   <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-slate-400">
+                    <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Score Accuracy</span>
-                      <span className="font-mono text-white font-bold">{m.percentage !== null ? `${m.percentage}%` : "Not Evaluated"}</span>
+                      <span className="font-mono text-foreground font-bold">{m.percentage !== null ? `${m.percentage}%` : "Not Evaluated"}</span>
                     </div>
                     <div className="w-full bg-surface-border h-2 rounded-full overflow-hidden">
                       <div
@@ -105,9 +105,9 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                    <span>Questions: <strong className="text-white font-mono">{m.questions_correct}/{m.questions_attempted}</strong> correct</span>
-                    <span>Marks: <strong className="text-white font-mono">{m.earned_score}/{m.max_score}</strong></span>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
+                    <span>Questions: <strong className="text-foreground font-mono">{m.questions_correct}/{m.questions_attempted}</strong> correct</span>
+                    <span>Marks: <strong className="text-foreground font-mono">{m.earned_score}/{m.max_score}</strong></span>
                   </div>
                 </div>
               ))}
@@ -120,31 +120,31 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
               {syllabusData.topics.map((t) => (
                 <div
                   key={t.topic_id}
-                  className="p-3.5 rounded-xl bg-surface-raised/60 border border-surface-border space-y-2.5"
+                  className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-2.5"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm font-bold text-white line-clamp-1">{t.topic_title}</span>
+                    <span className="text-sm font-bold text-foreground line-clamp-1">{t.topic_title}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase shrink-0 ${getSignalBadge(t.mastery_signal)}`}>
                       {t.mastery_signal.replace('_', ' ')}
                     </span>
                   </div>
 
                   <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-slate-400">
+                    <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Topic Accuracy</span>
-                      <span className="font-mono text-white font-bold">{t.percentage !== null ? `${t.percentage}%` : "Not Evaluated"}</span>
+                      <span className="font-mono text-foreground font-bold">{t.percentage !== null ? `${t.percentage}%` : "Not Evaluated"}</span>
                     </div>
                     <div className="w-full bg-surface-border h-2 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-primary-500 transition-all duration-300"
+                        className="h-full bg-primary transition-all duration-300"
                         style={{ width: `${Math.min(100, t.percentage || 0)}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                    <span>Questions: <strong className="text-white font-mono">{t.questions_correct}/{t.questions_attempted}</strong> correct</span>
-                    <span>Marks: <strong className="text-white font-mono">{t.earned_score}/{t.max_score}</strong></span>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
+                    <span>Questions: <strong className="text-foreground font-mono">{t.questions_correct}/{t.questions_attempted}</strong> correct</span>
+                    <span>Marks: <strong className="text-foreground font-mono">{t.earned_score}/{t.max_score}</strong></span>
                   </div>
                 </div>
               ))}
@@ -157,19 +157,19 @@ export function SyllabusMasteryAnalytics({ syllabusData }: SyllabusMasteryAnalyt
               {syllabusData.learning_objectives.map((o) => (
                 <div
                   key={o.objective_id}
-                  className="p-3 rounded-xl bg-surface-raised/60 border border-surface-border flex items-center justify-between gap-3"
+                  className="p-3 rounded-xl bg-muted/50 border border-border flex items-center justify-between gap-3"
                 >
                   <div className="space-y-0.5 flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white truncate">{o.objective_title}</p>
-                    <span className="text-[11px] text-slate-400">
-                      Evidence instances: <strong className="text-white font-mono">{o.evidence_count}</strong>
+                    <p className="text-xs font-semibold text-foreground truncate">{o.objective_title}</p>
+                    <span className="text-[11px] text-muted-foreground">
+                      Evidence instances: <strong className="text-foreground font-mono">{o.evidence_count}</strong>
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
                     <div className="text-right">
-                      <span className="text-xs font-bold text-white font-mono">{o.percentage !== null ? `${o.percentage}%` : "N/A"}</span>
-                      <p className="text-[10px] text-slate-500">{o.earned_score}/{o.max_score} pts</p>
+                      <span className="text-xs font-bold text-foreground font-mono">{o.percentage !== null ? `${o.percentage}%` : "N/A"}</span>
+                      <p className="text-[10px] text-muted-foreground">{o.earned_score}/{o.max_score} pts</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase ${getSignalBadge(o.mastery_signal)}`}>
                       {o.mastery_signal.replace('_', ' ')}

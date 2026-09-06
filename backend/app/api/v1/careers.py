@@ -68,8 +68,61 @@ from backend.app.career.personalization_engine import CareerPersonalizationEngin
 from backend.app.career.market_intelligence_service import CareerMarketIntelligenceService
 from backend.app.career.ranking_engine import CareerPriorityRankingEngine
 from backend.app.career.multilingual_service import MultilingualCareerService
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from fastapi import Request
 
 router = APIRouter(prefix="/careers", tags=["Canonical Career Taxonomy & Discovery"])
+
+# SEC-001: Dedicated limiter for public career endpoints that hit the database.
+# The global 200/min default is supplemented with stricter per-endpoint limits
+# to prevent DB overload from targeted crawling or abuse.
+_career_limiter = Limiter(key_func=get_remote_address)
+
+
+def resolve_authorized_profile_id(
+    supplied_profile_id: Optional[str],
+    current_user: Optional[User],
+    db: Optional[Session] = None,
+) -> Optional[str]:
+    """
+    SEC-005: Enforces object-level authorization for personalized endpoints.
+    - An unauthenticated caller CANNOT supply another user's profile_id to inspect private fits.
+    - An authenticated caller CANNOT supply another user's profile_id (rejected with 403).
+    - Demo profiles (interactive demo mode / test suite) are permitted.
+    - Returns authorized profile ID or None if anonymous without profile.
+    """
+    if supplied_profile_id:
+        # Check if the target profile is a demo profile
+        is_target_demo = False
+        if db:
+            from backend.app.models.profile import LearnerProfile
+            profile = db.query(LearnerProfile).filter(LearnerProfile.id == supplied_profile_id).first()
+            if profile and profile.user and getattr(profile.user, "is_demo", False):
+                is_target_demo = True
+
+        if is_target_demo:
+            return supplied_profile_id
+
+        if not current_user or not current_user.profile:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to evaluate personalized profile data."
+            )
+        if current_user.profile.id != supplied_profile_id and not getattr(current_user, "is_demo", False):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Cannot access another learner's personalized evaluation."
+            )
+        return supplied_profile_id
+
+    if current_user and current_user.profile:
+        return current_user.profile.id
+
+    return None
+
+
+_resolve_authorized_profile_id = resolve_authorized_profile_id
 
 
 # ---------------------------------------------------------------------------
@@ -77,7 +130,8 @@ router = APIRouter(prefix="/careers", tags=["Canonical Career Taxonomy & Discove
 # ---------------------------------------------------------------------------
 
 @router.get("/domains", response_model=List[CareerDomainOut])
-def list_career_domains(db: Session = Depends(get_db)):
+@_career_limiter.limit("30/minute")
+def list_career_domains(request: Request, db: Session = Depends(get_db)):
     """Returns all active career domains with child family and career counts."""
     domains = db.query(CareerDomain).filter(CareerDomain.is_active == True).order_by(CareerDomain.order.asc()).all()
     results = []
@@ -97,7 +151,9 @@ def list_career_domains(db: Session = Depends(get_db)):
 
 
 @router.get("/families", response_model=List[CareerFamilyOut])
+@_career_limiter.limit("30/minute")
 def list_career_families(
+    request: Request,
     domain: Optional[str] = Query(None, description="Optional domain slug filter"),
     db: Session = Depends(get_db)
 ):
@@ -123,7 +179,9 @@ def list_career_families(
 
 
 @router.get("/catalog", response_model=List[CareerSummaryOut])
+@_career_limiter.limit("30/minute")
 def get_career_catalog(
+    request: Request,
     domain: Optional[str] = Query(None, description="Filter by domain slug"),
     family: Optional[str] = Query(None, description="Filter by family slug"),
     db: Session = Depends(get_db)
@@ -266,16 +324,7 @@ def get_career_fit_clusters(
     Phase 11 Stage 6: Returns all canonical careers clustered into fit categories:
     strong_fit, good_fit, potential_fit, bridge_required, stretch_path, insufficient_data.
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
-
-    if profile_id and current_user and current_user.profile:
-        if current_user.profile.id != profile_id and not getattr(current_user, "is_demo", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Cannot access another learner's personalized fit evaluation."
-            )
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
 
     if not p_id:
         all_careers = db.query(Career).filter(Career.is_active == True).all()
@@ -313,16 +362,7 @@ def get_recommended_careers_for_learner(
     8 fit dimensions (Education, Skill, Interest, Experience, Practical,
     Portfolio, Pathway, Preference).
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
-
-    if profile_id and current_user and current_user.profile:
-        if current_user.profile.id != profile_id and not getattr(current_user, "is_demo", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Cannot access another learner's personalized fit evaluation."
-            )
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
 
     if not p_id:
         # If no profile, return unranked base catalog items with INSUFFICIENT_DATA
@@ -357,16 +397,7 @@ def get_personalized_alternatives(
     Phase 11 Stage 6: Discovers adjacent alternative careers that better match
     existing learner evidence when target career has major gaps.
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
-
-    if profile_id and current_user and current_user.profile:
-        if current_user.profile.id != profile_id and not getattr(current_user, "is_demo", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Cannot access another learner's personalized fit evaluation."
-            )
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
 
     if not p_id:
         raise HTTPException(
@@ -403,17 +434,8 @@ def get_ranked_priority_careers(
     Combines 8-dimension learner fit (Stage 6), live market viability (Stage 7),
     and primary goal preservation with domain diversity constraints.
     """
-    p_id = profile_id
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
     u_id = current_user.id if current_user else None
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
-
-    if profile_id and current_user and current_user.profile:
-        if current_user.profile.id != profile_id and not getattr(current_user, "is_demo", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Cannot access another learner's personalized rankings."
-            )
 
     engine = CareerPriorityRankingEngine(db=db)
     return engine.rank_careers_for_learner(
@@ -588,9 +610,7 @@ def get_career_requirements(
     Phase 11 Stage 4: Returns complete career requirements with verified sources,
     statutory authorities, and optional learner satisfaction status.
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
 
     engine = CareerRequirementEngine(db=db)
     try:
@@ -610,9 +630,7 @@ def get_career_pathways(
     Phase 11 Stage 4: Returns multi-pathway routes (Direct, Degree, ITI, Bridge, Transition)
     with ordered steps, estimated durations, and difficulty levels.
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
 
     engine = CareerRequirementEngine(db=db)
     try:
@@ -633,9 +651,7 @@ def evaluate_career_eligibility(
     Phase 11 Stage 4: Evaluates whether a learner meets the career entry prerequisites,
     detects statutory blockers, and calculates bridge requirements.
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
 
     engine = CareerRequirementEngine(db=db)
     try:
@@ -681,16 +697,7 @@ def get_career_fit(
     (education, skill, interest, experience, practical, portfolio, pathway, preference)
     with strict non-fabrication (missing fields = UNKNOWN).
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
-
-    if profile_id and current_user and current_user.profile:
-        if current_user.profile.id != profile_id and not getattr(current_user, "is_demo", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Cannot access another learner's personalized fit evaluation."
-            )
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
 
     engine = CareerPersonalizationEngine(db=db)
     try:
@@ -709,17 +716,7 @@ def get_career_fit_explanation(
     """
     Phase 11 Stage 6: Returns transparent, explainable justification of career fit with DecisionTrace.
     """
-    p_id = profile_id
-    if not p_id and current_user and current_user.profile:
-        p_id = current_user.profile.id
-
-    if profile_id and current_user and current_user.profile:
-        if current_user.profile.id != profile_id and not getattr(current_user, "is_demo", False):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Cannot access another learner's personalized fit evaluation."
-            )
-
+    p_id = _resolve_authorized_profile_id(profile_id, current_user, db=db)
     if not p_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

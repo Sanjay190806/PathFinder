@@ -30,14 +30,14 @@ export function AssessmentSubmitModal({
       maxWidth="md"
     >
       <div className="space-y-5">
-        <div className="rounded-2xl border border-surface-border bg-surface-raised/60 p-4 space-y-2">
+        <div className="rounded-2xl border border-border bg-muted/40 p-4 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400">Answered Questions:</span>
-            <span className="font-bold text-white">{answeredCount} of {totalQuestions}</span>
+            <span className="text-muted-foreground font-medium">Answered Questions:</span>
+            <span className="font-bold text-foreground">{answeredCount} of {totalQuestions}</span>
           </div>
           {unansweredCount > 0 && (
-            <div className="flex items-center gap-2 text-xs text-amber-300 pt-1">
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-amber-800 dark:text-amber-300 pt-1 font-medium">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <span>You have {unansweredCount} unanswered question{unansweredCount > 1 ? "s" : ""}. Unanswered questions will be scored as unmastered.</span>
             </div>
           )}

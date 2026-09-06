@@ -114,6 +114,17 @@ export function AIAssistantDrawer({ isOpen, onClose, onPlanAdjusted }: AIAssista
           onClose={onClose}
         />
 
+        {/* Groq AI badge */}
+        <div className="px-4 pb-2 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">
+            ⚡ Powered by Groq · llama-3.3-70b
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-green-500/10 text-green-400 border border-green-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+            Live AI
+          </span>
+        </div>
+
         {/* Live Grounded Context Summary */}
         <CoachContextSummary context={context} />
 

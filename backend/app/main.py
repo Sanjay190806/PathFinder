@@ -90,8 +90,22 @@ app.add_middleware(
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-CSRF-Token", "X-Refresh-Token"],
 )
+
+
+# ---------------------------------------------------------------------------
+# SEC-006: CSRF protection middleware for state-changing cookie requests
+# ---------------------------------------------------------------------------
+from backend.app.core.csrf import validate_csrf_protection
+
+@app.middleware("http")
+async def csrf_middleware(request: Request, call_next):
+    try:
+        validate_csrf_protection(request)
+    except HTTPException as exc:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    return await call_next(request)
 
 
 # ---------------------------------------------------------------------------

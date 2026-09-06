@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Play, Sparkles, Clock, Lock, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
+import { Play, Sparkles, Clock, Lock, CheckCircle2, BookOpen } from "lucide-react";
 import { LearningPathItem } from "@/lib/types";
 import { Button, Card, Badge } from "@/components/ui";
 import { formatTimeHours } from "@/lib/utils";
@@ -13,20 +13,20 @@ interface NextStepCardProps {
 export function NextStepCard({ item, onWhyClick }: NextStepCardProps) {
   if (!item) {
     return (
-      <Card variant="highlight" className="p-6 sm:p-8">
-        <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm mb-2">
-          <CheckCircle2 className="h-5 w-5" /> Path Completed
+      <Card variant="glass" className="p-8 sm:p-10 text-center flex flex-col items-center justify-center">
+        <div className="flex items-center justify-center h-16 w-16 rounded-full bg-success/20 text-success mb-4">
+          <CheckCircle2 className="h-8 w-8" />
         </div>
-        <h3 className="text-xl font-bold text-white">You have completed all milestones in this roadmap!</h3>
-        <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-lg">
-          Take a diagnostic assessment to verify your skill mastery or calibrate a new career destination in your profile.
+        <h3 className="text-2xl font-bold text-foreground mb-2">You've completed your roadmap!</h3>
+        <p className="text-muted-foreground max-w-lg mb-8">
+          Take a diagnostic assessment to verify your skill mastery, or set a new career destination to continue your journey.
         </p>
-        <div className="mt-5 flex gap-3">
+        <div className="flex flex-wrap justify-center gap-4">
           <Link href="/assessment">
-            <Button size="md">Take Skill Calibration</Button>
+            <Button size="lg" variant="primary">Take Assessment</Button>
           </Link>
           <Link href="/roadmap">
-            <Button variant="outline" size="md">Inspect Roadmap</Button>
+            <Button variant="secondary" size="lg">Review Journey</Button>
           </Link>
         </div>
       </Card>
@@ -36,48 +36,56 @@ export function NextStepCard({ item, onWhyClick }: NextStepCardProps) {
   const isLocked = item.is_locked;
 
   return (
-    <Card variant="highlight" className="relative overflow-hidden p-6 sm:p-8 shadow-xl">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-        <div className="max-w-2xl space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="primary" size="md">
+    <Card className="relative overflow-hidden border-border/50 bg-gradient-to-br from-surface to-surface-muted shadow-md">
+      {/* Decorative background element */}
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      
+      <div className="p-6 sm:p-8 relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="flex-1 space-y-4">
+          <div className="flex items-center gap-3">
+            <Badge variant={isLocked ? "warning" : "primary"} className="uppercase tracking-wider">
               {isLocked ? "Prerequisite in Progress" : "Your Next Step"}
             </Badge>
-            <span className="text-xs font-semibold text-slate-300">
+            <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <BookOpen className="h-4 w-4" />
               Phase {item.phase_number}: {item.phase_name}
             </span>
           </div>
 
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight">
               {item.resource_title}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed line-clamp-2">
+            <p className="text-base text-muted-foreground mt-2 max-w-2xl leading-relaxed line-clamp-2">
               {item.resource_description}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-1">
-            <span className="flex items-center gap-1 font-semibold text-white">
-              <Clock className="h-3.5 w-3.5 text-primary-400" />
+          <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-muted-foreground pt-2">
+            <div className="flex items-center gap-1.5 text-foreground">
+              <Clock className="h-4 w-4 text-primary" />
               {formatTimeHours(item.estimated_hours)}
-            </span>
-            <span>&bull;</span>
-            <span>Provider: {item.resource_provider}</span>
-            <span>&bull;</span>
-            <span>Difficulty: {item.difficulty}</span>
+            </div>
+            <div className="h-4 w-[1px] bg-border" />
+            <div className="flex items-center gap-1.5">
+              <span>{item.resource_provider}</span>
+            </div>
+            <div className="h-4 w-[1px] bg-border" />
+            <Badge variant="outline" className="text-xs bg-background">
+              {item.difficulty}
+            </Badge>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row lg:flex-col items-stretch gap-2.5 shrink-0">
+        <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-auto shrink-0">
           {isLocked ? (
-            <div className="rounded-xl border border-amber-800/40 bg-amber-950/20 p-3 text-xs text-amber-200 flex items-center gap-2">
-              <Lock className="h-4 w-4 text-amber-400 shrink-0" />
-              <span>Complete foundational prerequisites first</span>
+            <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm font-medium text-warning">
+              <Lock className="h-4 w-4 shrink-0" />
+              <span>Complete prerequisites</span>
             </div>
           ) : (
             <Link href={`/resources/${item.resource_id}`} className="w-full">
-              <Button size="lg" className="w-full shadow-md" leftIcon={<Play className="h-4 w-4 fill-current" />}>
+              <Button size="lg" className="w-full" leftIcon={<Play className="h-4 w-4 fill-current" />}>
                 Start Learning
               </Button>
             </Link>
@@ -85,12 +93,12 @@ export function NextStepCard({ item, onWhyClick }: NextStepCardProps) {
 
           <Button
             variant="outline"
-            size="md"
+            size="lg"
             onClick={() => onWhyClick(item)}
-            className="w-full"
-            leftIcon={<Sparkles className="h-3.5 w-3.5 text-accent-cyan" />}
+            className="w-full bg-background"
+            leftIcon={<Sparkles className="h-4 w-4 text-primary" />}
           >
-            Why this is your next step
+            Why this?
           </Button>
         </div>
       </div>

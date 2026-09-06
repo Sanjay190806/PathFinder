@@ -1,66 +1,64 @@
 import React, { forwardRef } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { Slot } from "@radix-ui/react-slot";
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "subtle" | "danger";
-  size?: "sm" | "md" | "lg" | "icon";
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  {
+    variants: {
+      variant: {
+        primary: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        subtle: "bg-primary/10 text-primary hover:bg-primary/20",
+        danger: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+      },
+      size: {
+        sm: "h-8 rounded-md px-3 text-xs",
+        md: "h-9 rounded-md px-4 py-2 text-sm",
+        lg: "h-10 rounded-lg px-8 text-base",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  }
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      variant = "primary",
-      size = "md",
-      isLoading = false,
-      leftIcon,
-      rightIcon,
-      disabled,
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
-    const variantStyles = {
-      primary: "bg-primary-600 hover:bg-primary-500 text-white shadow-sm hover:shadow",
-      secondary: "bg-surface-raised hover:bg-slate-700 text-slate-100 border border-surface-border",
-      outline: "border border-surface-border hover:bg-surface-raised text-slate-200 hover:text-white bg-transparent",
-      ghost: "hover:bg-surface-raised text-slate-300 hover:text-white bg-transparent",
-      subtle: "bg-primary-950/60 hover:bg-primary-900/60 text-primary-300 border border-primary-800/50",
-      danger: "bg-rose-600 hover:bg-rose-500 text-white shadow-sm"
-    };
-
-    const sizeStyles = {
-      sm: "text-xs px-3 py-1.5 gap-1.5 h-8",
-      md: "text-sm px-4 py-2 gap-2 h-10",
-      lg: "text-base px-5 py-2.5 gap-2.5 h-12",
-      icon: "h-9 w-9 p-0"
-    };
-
+  ({ className, variant, size, asChild = false, isLoading, leftIcon, rightIcon, children, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
     return (
-      <button
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        disabled={disabled || isLoading}
-        className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
+        disabled={props.disabled || isLoading}
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <Loader2 className="mr-2 h-4 w-4 animate-spin shrink-0" />
         ) : leftIcon ? (
-          <span className="shrink-0">{leftIcon}</span>
+          <span className="mr-2 shrink-0">{leftIcon}</span>
         ) : null}
         {children}
-        {!isLoading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
-      </button>
+        {!isLoading && rightIcon && <span className="ml-2 shrink-0">{rightIcon}</span>}
+      </Comp>
     );
   }
 );
-
 Button.displayName = "Button";

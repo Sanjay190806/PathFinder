@@ -246,13 +246,13 @@ export function HierarchicalEducationSelector({
       <div className="relative" ref={searchDropdownRef}>
         <label
           htmlFor="education-alias-search"
-          className="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between"
+          className="block text-xs font-semibold text-foreground mb-1 flex items-center justify-between"
         >
           <span className="flex items-center gap-1.5">
-            <Search className="h-3.5 w-3.5 text-primary-400" />
+            <Search className="h-3.5 w-3.5 text-primary" />
             <span>Search Stream or Shortcut (e.g. &quot;CSE&quot;, &quot;ECE&quot;, &quot;PCM&quot;, &quot;BCA&quot;, &quot;COPA&quot;)</span>
           </span>
-          <span className="text-[10px] text-slate-400 font-normal">Auto-calibrates hierarchy</span>
+          <span className="text-[10px] text-muted-foreground font-normal">Auto-calibrates hierarchy</span>
         </label>
         <div className="relative">
           <input
@@ -265,16 +265,16 @@ export function HierarchicalEducationSelector({
             }}
             onFocus={() => setIsSearchFocused(true)}
             placeholder="Search by degree, branch acronym (CSE, ECE, PCM) or discipline..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl text-xs bg-surface border border-surface-border text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-xl text-xs bg-card border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
             aria-autocomplete="list"
             aria-expanded={isSearchFocused && searchResults.length > 0}
           />
-          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
         </div>
 
         {/* Live Search Suggestions Dropdown */}
         {isSearchFocused && searchQuery.trim().length > 0 && (
-          <div className="absolute z-50 mt-1 w-full rounded-xl bg-surface-raised border border-surface-border shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
+          <div className="absolute z-50 mt-1 w-full rounded-xl bg-card border border-border shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
             {searchResults.length > 0 ? (
               <div className="p-1.5 space-y-1">
                 {searchResults.map((item) => (
@@ -282,13 +282,13 @@ export function HierarchicalEducationSelector({
                     key={`${item.education_level_id}-${item.stream_id}-${item.specialization_id}`}
                     type="button"
                     onClick={() => handleSelectSearchResult(item)}
-                    className="w-full p-2 rounded-lg text-left hover:bg-primary-950/60 hover:text-white transition-all flex items-center justify-between group"
+                    className="w-full p-2 rounded-lg text-left hover:bg-accent hover:text-accent-foreground transition-all flex items-center justify-between group"
                   >
                     <div>
-                      <div className="text-xs font-bold text-white group-hover:text-primary-300">
+                      <div className="text-xs font-bold text-foreground group-hover:text-primary">
                         {item.specialization_name}
                       </div>
-                      <div className="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                      <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                         <span>{item.education_level_name}</span>
                         <span>&bull;</span>
                         <span>{item.stream_name}</span>
@@ -301,7 +301,7 @@ export function HierarchicalEducationSelector({
                 ))}
               </div>
             ) : (
-              <div className="p-4 text-center text-xs text-slate-400">
+              <div className="p-4 text-center text-xs text-muted-foreground">
                 No matching streams found for &quot;{searchQuery}&quot;. You can use the cascading dropdowns below or pick &quot;Other / Custom&quot;.
               </div>
             )}
@@ -310,12 +310,12 @@ export function HierarchicalEducationSelector({
       </div>
 
       {/* 4-Level Cascading Hierarchy */}
-      <div className="p-4 rounded-2xl border border-surface-border bg-surface-raised/40 space-y-4">
+      <div className="p-4 rounded-2xl border border-border bg-card/50 space-y-4">
         {/* Level 1: Education Level */}
         <div>
           <label
             htmlFor="select-education-level"
-            className="block text-xs font-bold uppercase tracking-wider text-primary-400 mb-1.5"
+            className="block text-xs font-bold uppercase tracking-wider text-primary mb-1.5"
           >
             1. Education Level
           </label>
@@ -327,13 +327,13 @@ export function HierarchicalEducationSelector({
             disabled={isLoadingCatalog}
           >
             {catalog.map((lvl) => (
-              <option key={lvl.id} value={lvl.id}>
+              <option key={lvl.id} value={lvl.id} className="bg-card text-foreground">
                 {lvl.name}
               </option>
             ))}
           </Select>
           {currentLevel?.description && !compact && (
-            <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+            <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
               {currentLevel.description}
             </p>
           )}
@@ -344,10 +344,10 @@ export function HierarchicalEducationSelector({
           <div>
             <label
               htmlFor="select-broad-stream"
-              className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between"
+              className="block text-xs font-bold text-foreground mb-1.5 flex items-center justify-between"
             >
               <span>2. Broad Stream / Field</span>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-muted-foreground">
                 {availableStreams.length} available
               </span>
             </label>
@@ -359,7 +359,7 @@ export function HierarchicalEducationSelector({
               disabled={availableStreams.length === 0}
             >
               {availableStreams.map((st) => (
-                <option key={st.id} value={st.id}>
+                <option key={st.id} value={st.id} className="bg-card text-foreground">
                   {st.name}
                 </option>
               ))}
@@ -370,10 +370,10 @@ export function HierarchicalEducationSelector({
           <div>
             <label
               htmlFor="select-specialization"
-              className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between"
+              className="block text-xs font-bold text-foreground mb-1.5 flex items-center justify-between"
             >
               <span>3. Specialization / Subjects</span>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[10px] text-muted-foreground">
                 {availableSpecializations.length} options
               </span>
             </label>
@@ -385,11 +385,11 @@ export function HierarchicalEducationSelector({
               disabled={availableSpecializations.length === 0}
             >
               {availableSpecializations.map((spec) => (
-                <option key={spec.id} value={spec.id}>
+                <option key={spec.id} value={spec.id} className="bg-card text-foreground">
                   {spec.name}
                 </option>
               ))}
-              <option value="other-custom">Other / Custom</option>
+              <option value="other-custom" className="bg-card text-foreground">Other / Custom</option>
             </Select>
           </div>
         </div>
@@ -398,7 +398,7 @@ export function HierarchicalEducationSelector({
         <div>
           <label
             htmlFor="select-qualification"
-            className="block text-xs font-bold text-slate-300 mb-1.5"
+            className="block text-xs font-bold text-foreground mb-1.5"
           >
             4. Current / Expected Degree or Qualification
           </label>
@@ -410,11 +410,11 @@ export function HierarchicalEducationSelector({
               className="w-full text-xs font-medium"
             >
               {availableQualifications.map((q) => (
-                <option key={q} value={q}>
+                <option key={q} value={q} className="bg-card text-foreground">
                   {q}
                 </option>
               ))}
-              <option value="Other / Custom Degree">Other / Custom Degree</option>
+              <option value="Other / Custom Degree" className="bg-card text-foreground">Other / Custom Degree</option>
             </Select>
 
             {/* Custom Input Reveal when Other / Custom is chosen */}
@@ -433,13 +433,13 @@ export function HierarchicalEducationSelector({
 
         {/* Optional Institution & Year */}
         {showInstitutionFields && !compact && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-surface-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border">
             <Input
               label="Institution / Board / University (Optional)"
               placeholder="e.g. Anna University, IIT Bombay, CBSE, Delhi University"
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
-              leftIcon={<Building2 className="h-3.5 w-3.5 text-slate-400" />}
+              leftIcon={<Building2 className="h-3.5 w-3.5 text-muted-foreground" />}
               className="text-xs"
             />
 
@@ -448,31 +448,31 @@ export function HierarchicalEducationSelector({
               placeholder="e.g. 2025, 2026"
               value={graduationYear}
               onChange={(e) => setGraduationYear(e.target.value)}
-              leftIcon={<Calendar className="h-3.5 w-3.5 text-slate-400" />}
+              leftIcon={<Calendar className="h-3.5 w-3.5 text-muted-foreground" />}
               className="text-xs"
             />
           </div>
         )}
 
         {/* Active Selection Breadcrumb Summary */}
-        <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
-          <span className="font-semibold text-white flex items-center gap-1">
-            <GraduationCap className="h-3.5 w-3.5 text-primary-400" />
+        <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground flex items-center gap-1">
+            <GraduationCap className="h-3.5 w-3.5 text-primary" />
             <span>Path:</span>
           </span>
-          <span className="px-2 py-0.5 rounded-md bg-surface border border-surface-border text-slate-300">
+          <span className="px-2 py-0.5 rounded-md bg-surface border border-border text-foreground">
             {currentLevel?.short_label || currentLevel?.name || "Level"}
           </span>
-          <span className="text-slate-500">&rarr;</span>
-          <span className="px-2 py-0.5 rounded-md bg-surface border border-surface-border text-slate-300">
+          <span className="text-muted-foreground/60">&rarr;</span>
+          <span className="px-2 py-0.5 rounded-md bg-surface border border-border text-foreground">
             {currentStream?.name || "Stream"}
           </span>
-          <span className="text-slate-500">&rarr;</span>
-          <span className="px-2 py-0.5 rounded-md bg-primary-950/80 border border-primary-500/40 text-primary-200 font-medium">
+          <span className="text-muted-foreground/60">&rarr;</span>
+          <span className="px-2 py-0.5 rounded-md bg-primary/10 border border-primary/30 text-primary font-medium">
             {currentSpecialization?.name || customLabel || "Specialization"}
           </span>
-          <span className="text-slate-500">&bull;</span>
-          <span className="text-accent-cyan font-semibold">
+          <span className="text-muted-foreground/60">&bull;</span>
+          <span className="text-primary font-semibold">
             {qualification || "Degree"}
           </span>
         </div>

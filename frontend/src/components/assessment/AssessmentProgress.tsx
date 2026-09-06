@@ -15,12 +15,12 @@ export function AssessmentProgress({
   const percentage = totalQuestions > 0 ? Math.round(((currentIndex + 1) / totalQuestions) * 100) : 0;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 bg-card p-3 rounded-xl border border-border/80 shadow-sm">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold text-white">
+        <span className="font-extrabold text-foreground tracking-tight">
           Question {currentIndex + 1} of {totalQuestions}
         </span>
-        <span className="font-mono text-slate-400">
+        <span className="font-mono text-foreground font-bold">
           {answeredCount} of {totalQuestions} answered ({percentage}%)
         </span>
       </div>

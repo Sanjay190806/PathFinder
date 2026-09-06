@@ -42,7 +42,17 @@ SKILLS_DATA: List[Tuple[str, str, str, str, str]] = [
     ("Penetration Testing & Exploitation", "pentesting", "Cybersecurity", "Nmap reconnaissance, Metasploit exploitation, and Kali Linux toolkits", "Advanced"),
 
     ("Data Structures & Algorithms", "dsa", "Software Engineering", "Trees, graphs, dynamic programming, sorting, and Big-O computational complexity", "Intermediate"),
-    ("System Design & Distributed Architecture", "system-design", "Software Engineering", "Sharding, caching with Redis, load balancers, rate limiting, and CAP theorem", "Advanced")
+    ("System Design & Distributed Architecture", "system-design", "Software Engineering", "Sharding, caching with Redis, load balancers, rate limiting, and CAP theorem", "Advanced"),
+
+    ("Non-Linear Video Editing", "video-editing", "Media & Video", "Timeline trimming, J/L cuts, multicam sync, pacing, and proxy editing in Premiere & DaVinci", "Beginner"),
+    ("Audio Post & Sound Design", "audio-post", "Media & Video", "Dialogue leveling, noise reduction, Foley, audio compression, EQ, and -14 LUFS loudness mastering", "Beginner"),
+    ("Color Grading & Correction", "color-grading", "Media & Video", "Log curves, 3D LUTs, Vectorscopes, Waveforms, primary/secondary correction, and look development", "Intermediate"),
+    ("Motion Graphics & Keyframing", "motion-graphics", "Media & Video", "Kinetic typography, lower thirds, tracking, shape layers, and visual effects in After Effects", "Intermediate"),
+    ("Typography & Font Pairing", "typography", "Design", "Font hierarchy, kerning, tracking, modular scale, visual layout, and readability", "Beginner"),
+    ("Figma UI/UX Prototyping", "figma-ui", "Design", "Auto-layout, reusable components, interactive prototypes, design tokens, and wireframing", "Beginner"),
+    ("Layout & Interface Design", "layout-design", "Design", "Visual hierarchy, grid layouts, responsive breakpoints, whitespace, and UI layout patterns", "Beginner"),
+    ("Color Theory & Palettes", "color-theory", "Design", "Color harmonies, contrast ratios, WCAG accessibility, and design system color tokens", "Beginner"),
+    ("User Experience Research", "ux-research", "Design", "User interviews, usability testing protocols, heuristic evaluations, and persona mapping", "Beginner")
 ]
 
 PREREQUISITES_DATA: List[Tuple[str, str, str, bool]] = [
@@ -365,5 +375,72 @@ RESOURCES_CATALOG: List[Tuple[str, str, str, str, str, str, str, float, float, L
     ("Capstone: Distributed Real-Time Financial Ledger", "capstone-distributed-financial-ledger",
      "Architect an ACID-compliant, high-throughput distributed transaction processing engine with event sourcing.",
      "PathFinder Capstone Series", "https://github.com/pathfinder/distributed-financial-ledger", "project", "Advanced", 20.0, 0.98,
-     ["software-engineer"], "project", ["system-design", "dsa", "sql"], ["system-design", "dsa"])
+     ["software-engineer"], "project", ["system-design", "dsa", "sql"], ["system-design", "dsa"]),
+
+    # --- VIDEO EDITING & DIGITAL MEDIA TRACK (10) ---
+    ("Adobe Premiere Pro Masterclass: Complete Video Editing Guide", "adobe-premiere-pro-masterclass",
+     "Master non-linear editing in Adobe Premiere Pro. Learn clip trimming, J-cuts, L-cuts, Lumetri color balance, Essential Sound audio ducking, and proxy workflows for 4K footage.",
+     "Adobe Learn", "https://helpx.adobe.com/premiere-pro/tutorials.html", "course", "Beginner", 12.0, 0.98,
+     ["video-editor"], "hands-on", ["video-editing", "audio-post"], []),
+
+    ("DaVinci Resolve 19: Complete Post-Production & Edit Workflow", "davinci-resolve-complete-post",
+     "Official Blackmagic Design training covering the high-speed Cut Page, full Edit timeline, Fairlight sound mixing, and Fusion visual effects in DaVinci Resolve.",
+     "Blackmagic Design", "https://www.blackmagicdesign.com/products/davinciresolve/training", "course", "Beginner", 16.0, 0.99,
+     ["video-editor"], "video", ["video-editing", "color-grading"], []),
+
+    ("Cinematic Color Grading in DaVinci Resolve: Scopes, Log Curves & LUTs", "cinematic-color-grading-davinci",
+     "Professional color grading using Vectorscopes, Waveform monitors, Log curve transforms, 3D LUTs, and power windows for cinematic look development.",
+     "Blackmagic Design", "https://www.blackmagicdesign.com/products/davinciresolve/training", "tutorial", "Intermediate", 10.0, 0.97,
+     ["video-editor"], "hands-on", ["color-grading"], ["video-editing"]),
+
+    ("Apple Final Cut Pro: Magnetic Timeline & Multi-Cam Mastery", "final-cut-pro-magnetic-timeline",
+     "Learn Apple Final Cut Pro's revolutionary Magnetic Timeline, multi-camera angle synchronization, ProRes RAW workflows, 360° video, and third-party plugin integration.",
+     "Apple Support", "https://support.apple.com/guide/final-cut-pro/welcome/mac", "tutorial", "Beginner", 10.0, 0.96,
+     ["video-editor"], "interactive", ["video-editing"], []),
+
+    ("Adobe After Effects: Kinetic Typography & Motion Graphics for Editors", "after-effects-motion-graphics-editors",
+     "Create lower thirds, kinetic title sequences, shape animations, tracking, and visual compositing in Adobe After Effects with Dynamic Link to Premiere Pro.",
+     "Adobe Learn", "https://helpx.adobe.com/after-effects/tutorials.html", "course", "Intermediate", 14.0, 0.97,
+     ["video-editor"], "project", ["motion-graphics", "typography"], ["video-editing"]),
+
+    ("Audio Post-Production & Sound Design with Fairlight & Adobe Audition", "audio-post-sound-design-fairlight-audition",
+     "Comprehensive dialogue cleanup, noise reduction, Foley sound design, audio compression, EQ, and -14 LUFS integrated loudness mastering for YouTube and broadcast.",
+     "Adobe & Blackmagic Design", "https://helpx.adobe.com/audition/tutorials.html", "course", "Intermediate", 8.0, 0.95,
+     ["video-editor"], "hands-on", ["audio-post"], ["video-editing"]),
+
+    ("The Foundation of Video Editing: Pacing, Montage & Narrative Theory", "foundation-of-video-editing-cu-boulder",
+     "University of Colorado Boulder course exploring narrative pacing, continuity editing, match cuts, montage theory, and historical foundations of cinematic storytelling.",
+     "University of Colorado Boulder / Coursera", "https://www.coursera.org/learn/the-foundation-of-video-editing", "course", "Beginner", 15.0, 0.96,
+     ["video-editor"], "video", ["video-editing"], []),
+
+    ("CalArts Graphic Design & Visual Typography Specialization", "calarts-graphic-design-typography",
+     "California Institute of the Arts specialization in foundational graphic design, typography, color theory, and visual communication.",
+     "CalArts / Coursera", "https://www.coursera.org/specializations/graphic-design", "course", "Beginner", 18.0, 0.98,
+     ["video-editor", "graphic-designer", "ui-ux-designer"], "hands-on", ["typography"], []),
+
+    ("Video Transcoding, Codecs & Compression Architecture with HandBrake", "video-transcoding-codecs-handbrake",
+     "Deep dive into video containers (MP4, MKV, MOV), intra vs inter-frame compression (ProRes, H.264, H.265/HEVC, AV1), bitrates, chroma subsampling (4:2:0 vs 4:2:2), and HandBrake encoding.",
+     "HandBrake Documentation", "https://handbrake.fr/docs/", "article", "Intermediate", 5.0, 0.94,
+     ["video-editor"], "theory", ["video-editing"], []),
+
+    ("Capstone: Cinematic Commercial & Showreel Portfolio Production", "capstone-video-editor-showreel",
+     "Assemble a complete commercial promo and portfolio showreel from raw multicam 4K footage. Balance narrative pacing, sound design, motion titles, and cinematic color grading.",
+     "PathFinder Media Studios", "https://www.blackmagicdesign.com/products/davinciresolve/training", "project", "Advanced", 20.0, 0.99,
+     ["video-editor"], "project", ["video-editing", "color-grading", "motion-graphics", "audio-post"], ["video-editing", "color-grading", "audio-post"]),
+
+    # --- UI/UX DESIGN & INTERACTION (3) ---
+    ("Google UX Design Professional Certificate", "google-ux-design-specialization",
+     "Foundational to advanced UX design certificate covering user research, wireframing, Figma prototypes, and portfolio case studies.",
+     "Google / Coursera", "https://www.coursera.org/professional-certificates/google-ux-design", "course", "Beginner", 24.0, 0.99,
+     ["ui-ux-designer", "graphic-designer"], "hands-on", ["figma-ui", "layout-design", "ux-research"], []),
+
+    ("Figma UI/UX Design Essentials & Reusable Design Systems", "figma-ui-ux-design-masterclass",
+     "Master Figma from wireframing to advanced auto-layout, interactive component variants, design tokens, and developer handoff.",
+     "Figma / Coursera", "https://www.coursera.org/learn/figma-design", "course", "Intermediate", 16.0, 0.98,
+     ["ui-ux-designer", "full-stack-developer"], "hands-on", ["figma-ui", "layout-design"], []),
+
+    ("Interaction Design & Usability Evaluation (IxDF)", "interaction-design-user-research",
+     "Human-computer interaction principles, usability heuristics, cognitive walkthroughs, and quantitative user testing.",
+     "Interaction Design Foundation", "https://www.interaction-design.org/courses", "course", "Intermediate", 18.0, 0.97,
+     ["ui-ux-designer"], "theory", ["ux-research", "layout-design"], [])
 ]

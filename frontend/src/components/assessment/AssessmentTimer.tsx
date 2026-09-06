@@ -19,10 +19,10 @@ export function AssessmentTimer() {
 
   return (
     <div
-      className="inline-flex items-center gap-1.5 rounded-lg border border-surface-border bg-surface-raised px-2.5 py-1 text-xs font-mono text-slate-400"
+      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-mono text-foreground font-medium shadow-sm"
       title="Elapsed pacing time (does not affect scoring)"
     >
-      <Clock className="h-3.5 w-3.5 text-primary-400 shrink-0" />
+      <Clock className="h-3.5 w-3.5 text-primary shrink-0" />
       <span>Elapsed: {formatTime(seconds)}</span>
     </div>
   );

@@ -2,20 +2,35 @@ import React from "react";
 import { ExternalLink, Clock, Award, Layers } from "lucide-react";
 import { ResourceDetail } from "@/lib/types";
 import { Card, Button } from "@/components/ui";
-import { formatTimeHours } from "@/lib/utils";
+import { formatTimeHours, getToolBadges, cleanVerifiedUrl } from "@/lib/utils";
 
 interface ResourceHeroProps {
   resource: ResourceDetail;
 }
 
 export function ResourceHero({ resource }: ResourceHeroProps) {
+  const verifiedUrl = cleanVerifiedUrl(resource.url);
+  const tools = getToolBadges(resource.title, resource.description);
+
   return (
     <Card variant="highlight" className="p-6 sm:p-8 space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Provider: {resource.provider}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Provider: {resource.provider}
+            </span>
+            {tools.map((t, idx) => (
+              <span
+                key={idx}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${t.color}`}
+              >
+                <span>{t.icon}</span>
+                <span>{t.name}</span>
+              </span>
+            ))}
+          </div>
+
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
             {resource.title}
           </h1>
@@ -25,20 +40,24 @@ export function ResourceHero({ resource }: ResourceHeroProps) {
         </div>
 
         <div className="shrink-0 flex flex-col items-stretch sm:items-end gap-2">
-          {resource.url && (
+          {verifiedUrl ? (
             <a
-              href={resource.url}
+              href={verifiedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex"
             >
               <Button size="lg" className="w-full sm:w-auto shadow-md" rightIcon={<ExternalLink className="h-4 w-4" />}>
-                Open External Course
+                Open Official Course
               </Button>
             </a>
+          ) : (
+            <Button size="lg" disabled className="w-full sm:w-auto opacity-50 cursor-not-allowed">
+              Direct Link Unavailable
+            </Button>
           )}
           <span className="text-[11px] text-slate-400 text-center sm:text-right">
-            Opens on {resource.provider} platform
+            Opens verified {resource.provider} curriculum
           </span>
         </div>
       </div>

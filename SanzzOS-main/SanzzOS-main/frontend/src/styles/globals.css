@@ -1,0 +1,82 @@
+@import './theme.css';
+@import './tokens.css';
+@import './layout.css';
+@import './components.css';
+@import './immersive.css';
+@import './effects.css';
+@import './animations.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .input-field {
+    @apply w-full rounded-lg border border-border-subtle bg-bgBase px-3 py-2 text-sm text-textPrimary placeholder:text-textMuted outline-none transition focus:border-accentBlue focus:ring-2 focus:ring-accentBlue;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M5 4l16 11-8 1.8 4.6 8.4-2.8 1.5-4.8-8.7-4.4 4.6z' fill='%2306B6D4' stroke='%23A855F7' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E") 5 5, auto;
+  }
+
+  button,
+  a,
+  [role='button'],
+  .cursor-pointer {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M5 4l16 11-8 1.8 4.6 8.4-2.8 1.5-4.8-8.7-4.4 4.6z' fill='%2306B6D4' stroke='%23A855F7' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E") 5 5, pointer;
+  }
+
+  input,
+  textarea,
+  select {
+    cursor: text;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+.chat-message-content,
+.chat-message-content * {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+.chat-message-content button,
+.chat-message-content .chat-copy-button,
+.chat-message-content .copy-code-btn {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.chat-message-content pre,
+.chat-message-content code {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}

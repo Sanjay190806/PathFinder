@@ -133,6 +133,7 @@ export function SkillGraphView({
       {/* Interactive SVG Graph for Desktop/Tablet */}
       <div className="hidden md:block relative w-full overflow-hidden rounded-3xl border border-surface-border bg-surface/90 shadow-2xl backdrop-blur-xl h-[520px]">
         <svg
+          suppressHydrationWarning
           width="100%"
           height="100%"
           viewBox={`0 0 ${svgDimensions.width} ${svgDimensions.height}`}

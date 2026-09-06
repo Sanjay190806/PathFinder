@@ -170,7 +170,25 @@ ROLE_DSA_BENCHMARKS = {
 }
 
 
+CANONICAL_DSA_PRIORITY_WEIGHTS: Dict[str, float] = {
+    "VERY_HIGH": 1.0,
+    "HIGH": 0.8,
+    "MEDIUM": 0.5,
+    "LOW": 0.3,
+    "MINIMAL": 0.1,
+    "NOT_APPLICABLE": 0.0,
+    "UNKNOWN": 0.0,
+}
+
+
 class DSAPriorityService:
+    PRIORITY_WEIGHTS = CANONICAL_DSA_PRIORITY_WEIGHTS
+
+    @classmethod
+    def get_canonical_weight(cls, priority_level: str) -> float:
+        """Returns normalized canonical weight (0.0 to 1.0) for a given priority tier."""
+        return cls.PRIORITY_WEIGHTS.get(str(priority_level).upper(), 0.0)
+
     @staticmethod
     def get_role_dsa_priority(
         db: Session,
@@ -488,14 +506,14 @@ class DSAPriorityService:
                     {
                         "name": "Role DSA Relevance",
                         "weight": 0.6,
-                        "raw_score": 1.0 if priority_level in ("VERY_HIGH", "HIGH") else 0.5,
-                        "contribution": 0.6 if priority_level in ("VERY_HIGH", "HIGH") else 0.3,
+                        "raw_score": CANONICAL_DSA_PRIORITY_WEIGHTS.get(priority_level, 0.5),
+                        "contribution": round(CANONICAL_DSA_PRIORITY_WEIGHTS.get(priority_level, 0.5) * 0.6, 2),
                         "reason": f"Role classification indicates {priority_level} requirement tier.",
                     },
                     {
                         "name": "Source Provenance",
                         "weight": 0.4,
-                        "raw_score": confidence,
+                        "raw_score": round(confidence, 2),
                         "contribution": round(confidence * 0.4, 2),
                         "reason": f"Evidence derived from {source_level} source hierarchy.",
                     },

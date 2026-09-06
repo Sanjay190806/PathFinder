@@ -1,0 +1,2 @@
+import React from 'react';
+export const ResumeCompanyMatchPanel: React.FC<{ company: string; role: string; fixes: string[] }> = ({ company, role, fixes }) => <div className="grid gap-2 text-sm text-textSecondary"><p><span className="font-semibold text-textPrimary">{company}</span> match for <span className="font-semibold text-textPrimary">{role}</span> is estimated from resume keywords and section strength.</p>{fixes.map((fix) => <p key={fix}>Fix first: {fix}</p>)}</div>;

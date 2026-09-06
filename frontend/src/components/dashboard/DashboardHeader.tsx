@@ -1,6 +1,5 @@
 import React from "react";
-import Link from "next/link";
-import { Target, Clock, RefreshCw, Sparkles, Layers } from "lucide-react";
+import { Clock, RefreshCw, Sparkles, Target } from "lucide-react";
 import { Profile, LearningPathVersion } from "@/lib/types";
 import { Badge, Button } from "@/components/ui";
 
@@ -28,65 +27,68 @@ export function DashboardHeader({
   const targetRole = profile?.primary_goal?.target_role;
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-surface-border">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-semibold text-slate-400">{getGreeting()}, {name}</span>
+    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 mb-8 border-b border-border/50">
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">{getGreeting()}, {name}</span>
           {activeVersion && (
-            <Badge variant="primary" size="sm">
-              Version {activeVersion.version_number}.0
+            <Badge variant="secondary" size="sm" className="bg-primary/10 text-primary hover:bg-primary/20">
+              Roadmap v{activeVersion.version_number}.0
             </Badge>
           )}
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          {targetRole ? `Goal: ${targetRole}` : "Your Career Workspace"}
+        
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+          {targetRole ? (
+            <div className="flex items-center gap-3">
+              <span>Goal:</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+                {targetRole}
+              </span>
+            </div>
+          ) : (
+            "Your Career Workspace"
+          )}
         </h1>
-        <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
+
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground font-medium">
           {targetRole && profile?.weekly_hours && (
-            <p className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-primary-400" />
-              <span>Pace: {profile.weekly_hours}h/week</span>
-            </p>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-muted border border-border/50">
+              <Clock className="h-4 w-4 text-primary" />
+              <span>{profile.weekly_hours}h / week pace</span>
+            </div>
           )}
 
-          {/* 🇮🇳 JanSahay / SIH26101 Indian Education Stream Badge */}
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-950/70 border border-primary-500/30 text-primary-300 font-medium">
-            <span>🇮🇳</span>
-            <span>
-              {profile?.specialization || profile?.field_of_study || profile?.education_stream || "Computer Science & Engineering"}
-            </span>
-            <span className="text-slate-500">•</span>
-            <span className="text-slate-300">
-              {profile?.qualification || profile?.education_level || "Undergraduate"}
-            </span>
-            {profile?.current_role && (
-              <>
-                <span className="text-slate-500">•</span>
-                <span className="text-accent-cyan font-semibold">{profile.current_role}</span>
-              </>
-            )}
+          {/* Stream / Specialization Badge */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-muted border border-border/50">
+            <Target className="h-4 w-4 text-accent" />
+            <span className="text-foreground">{profile?.specialization || profile?.field_of_study || "Engineering"}</span>
+            <span className="text-muted-foreground/40">•</span>
+            <span>{profile?.qualification || "Undergraduate"}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 shrink-0">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
         {profile?.user_id && onResetDemo && (
           <Button
-            variant="subtle"
-            size="sm"
+            variant="outline"
+            size="md"
             onClick={onResetDemo}
-            leftIcon={<RefreshCw className="h-3.5 w-3.5 text-amber-400" />}
+            leftIcon={<RefreshCw className="h-4 w-4" />}
+            className="w-full sm:w-auto"
           >
             Reset Demo
           </Button>
         )}
         <Button
-          variant="outline"
-          size="sm"
+          variant="primary"
+          size="md"
           onClick={onOpenAssistant}
-          leftIcon={<Sparkles className="h-3.5 w-3.5 text-accent-cyan" />}
+          leftIcon={<Sparkles className="h-4 w-4" />}
+          className="w-full sm:w-auto shadow-md shadow-primary/20"
         >
-          AI Career Coach
+          AI Coach
         </Button>
       </div>
     </div>

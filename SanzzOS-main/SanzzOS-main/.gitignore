@@ -1,0 +1,86 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Build output
+dist/
+build/
+frontend/dist/
+backend/dist/
+.vite/
+.cache/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+
+# Database / local runtime
+*.db
+*.sqlite
+*.sqlite3
+prisma/dev.db
+backend/prisma/dev.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Local uploads / private data
+uploads/
+backend/uploads/
+storage/
+local-data/
+
+# Test/cache
+.playwright/
+test-results/
+.nyc_output/
+
+# Dev seed data (large test fixture — not for production)
+**/stress_seed.json
+
+# Build outputs
+release/
+dist/
+build/
+out/
+
+# Electron
+*.exe
+*.blockmap
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Environment
+.env
+backend/.env
+frontend/.env

@@ -25,12 +25,12 @@ export function SkillConfidenceChart({ skills }: SkillConfidenceChartProps) {
     if (active && payload && payload.length) {
       const d = payload[0].payload;
       return (
-        <div className="rounded-xl border border-surface-border bg-surface p-3 shadow-xl text-xs space-y-1">
-          <p className="font-bold text-white">{d.name}</p>
-          <p className="text-[11px] text-slate-400">Category: {d.category}</p>
+        <div className="rounded-xl border border-border bg-popover text-popover-foreground p-3 shadow-xl text-xs space-y-1">
+          <p className="font-bold text-foreground">{d.name}</p>
+          <p className="text-[11px] text-muted-foreground">Category: {d.category}</p>
           <div className="pt-1 flex items-center gap-2 font-mono">
-            <span className="text-accent-cyan font-bold">Confidence: {d.confidencePct}%</span>
-            <span className="text-slate-400">| Target: {d.targetPct}%</span>
+            <span className="text-primary font-bold">Confidence: {d.confidencePct}%</span>
+            <span className="text-muted-foreground">| Target: {d.targetPct}%</span>
           </div>
         </div>
       );
@@ -40,22 +40,22 @@ export function SkillConfidenceChart({ skills }: SkillConfidenceChartProps) {
 
   return (
     <Card variant="default" className="p-6 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-border pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
         <div>
-          <h3 className="text-sm font-bold text-white tracking-tight">
+          <h3 className="text-sm font-bold text-foreground tracking-tight">
             Skill Confidence vs Target Benchmark
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-muted-foreground">
             Assessed mastery levels compared to the 85% readiness target
           </p>
         </div>
-        <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
+        <div className="flex items-center gap-3 text-[11px] font-mono text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-primary-500" />
+            <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
             <span>Confidence</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-0.5 w-4 bg-accent-cyan" />
+            <span className="h-0.5 w-4 bg-cyan-500" />
             <span>85% Target</span>
           </div>
         </div>

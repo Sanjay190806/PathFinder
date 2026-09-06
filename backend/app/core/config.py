@@ -15,7 +15,9 @@ class Settings(BaseSettings):
     # No default — app crashes at startup if not set in .env or environment.
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15  # 15 minutes (SEC-003 short-lived access token)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7     # 7 days for revocable refresh token
+    COOKIE_SECURE: bool = False            # Set to True behind HTTPS in production
     DATABASE_URL: str = "sqlite:///./pathfinder.db"
     GEMINI_API_KEY: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None
@@ -34,6 +36,39 @@ class Settings(BaseSettings):
     EMBEDDING_DIM: int = 128
     RECOMMENDATION_ALGO_VERSION: str = "v1.2.0"
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def validate_cors_origins(cls, v):
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    v = json.loads(v)
+                except Exception:
+                    v = [item.strip() for item in v[1:-1].split(",") if item.strip()]
+            else:
+                v = [item.strip() for item in v.split(",") if item.strip()]
+
+        if not isinstance(v, list):
+            raise ValueError("CORS_ORIGINS must be a list of origin strings or comma-separated string.")
+
+        cleaned_origins = []
+        for origin in v:
+            origin_str = str(origin).strip().rstrip("/")
+            if origin_str == "*":
+                raise ValueError(
+                    "CORS configuration error: Wildcard origin '*' is strictly prohibited "
+                    "when allow_credentials=True (SEC-007). Specify explicit origin URLs."
+                )
+            if not (origin_str.startswith("http://") or origin_str.startswith("https://")):
+                raise ValueError(f"Invalid CORS origin: '{origin_str}'. Must start with http:// or https://")
+            cleaned_origins.append(origin_str)
+
+        if not cleaned_origins:
+            raise ValueError("CORS_ORIGINS cannot be empty.")
+        return cleaned_origins
 
     @field_validator("SECRET_KEY")
     @classmethod
